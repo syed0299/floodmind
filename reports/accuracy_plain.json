@@ -1,0 +1,182 @@
+{
+  "hindsight": {
+    "ward_days": 803400,
+    "flooded_ward_days": 23536,
+    "ward_55": {
+      "threshold": 0.55,
+      "flagged_ward_days": 11874,
+      "precision": 0.5772275560047162,
+      "recall": 0.29121346023113526
+    },
+    "ward_30": {
+      "threshold": 0.3,
+      "flagged_ward_days": 22881,
+      "precision": 0.472444386171933,
+      "recall": 0.4592963970088375
+    },
+    "calibration": [
+      {
+        "said": 0.008,
+        "happened": 0.008,
+        "n": 717432
+      },
+      {
+        "said": 0.084,
+        "happened": 0.08,
+        "n": 46818
+      },
+      {
+        "said": 0.212,
+        "happened": 0.194,
+        "n": 16269
+      },
+      {
+        "said": 0.39,
+        "happened": 0.345,
+        "n": 9233
+      },
+      {
+        "said": 0.597,
+        "happened": 0.474,
+        "n": 6624
+      },
+      {
+        "said": 0.817,
+        "happened": 0.639,
+        "n": 7024
+      }
+    ],
+    "city": {
+      "flood_days": 418,
+      "days": 4017,
+      "flood_days_flagged": 0.2703349282296651,
+      "flagged_days_that_flooded": 0.9416666666666667,
+      "flagged_days_with_any_flooding": 0.9583333333333334,
+      "quiet_days_flagged": 0.001554726368159204
+    },
+    "city_grid": {
+      "10+ wards, flag at 30%": {
+        "flood_days": 418,
+        "days": 4017,
+        "flood_days_flagged": 0.4354066985645933,
+        "flagged_days_that_flooded": 0.7398373983739838,
+        "flagged_days_with_any_flooding": 0.8211382113821138,
+        "quiet_days_flagged": 0.013681592039800995
+      },
+      "10+ wards, flag at 55%": {
+        "flood_days": 418,
+        "days": 4017,
+        "flood_days_flagged": 0.2703349282296651,
+        "flagged_days_that_flooded": 0.9416666666666667,
+        "flagged_days_with_any_flooding": 0.9583333333333334,
+        "quiet_days_flagged": 0.001554726368159204
+      },
+      "50+ wards, flag at 30%": {
+        "flood_days": 163,
+        "days": 4017,
+        "flood_days_flagged": 0.7116564417177914,
+        "flagged_days_that_flooded": 0.4715447154471545,
+        "flagged_days_with_any_flooding": 0.8211382113821138,
+        "quiet_days_flagged": 0.013681592039800995
+      },
+      "50+ wards, flag at 55%": {
+        "flood_days": 163,
+        "days": 4017,
+        "flood_days_flagged": 0.5460122699386503,
+        "flagged_days_that_flooded": 0.7416666666666667,
+        "flagged_days_with_any_flooding": 0.9583333333333334,
+        "quiet_days_flagged": 0.001554726368159204
+      }
+    }
+  },
+  "live": {
+    "ward_days": 38800,
+    "flooded_ward_days": 4377,
+    "ward_55": {
+      "threshold": 0.55,
+      "flagged_ward_days": 880,
+      "precision": 0.7647727272727273,
+      "recall": 0.15375828192826135
+    },
+    "ward_30": {
+      "threshold": 0.3,
+      "flagged_ward_days": 2345,
+      "precision": 0.5859275053304904,
+      "recall": 0.3139136394790953
+    },
+    "calibration": [
+      {
+        "said": 0.016,
+        "happened": 0.045,
+        "n": 28765
+      },
+      {
+        "said": 0.085,
+        "happened": 0.165,
+        "n": 5620
+      },
+      {
+        "said": 0.213,
+        "happened": 0.376,
+        "n": 2070
+      },
+      {
+        "said": 0.39,
+        "happened": 0.447,
+        "n": 1250
+      },
+      {
+        "said": 0.593,
+        "happened": 0.738,
+        "n": 760
+      },
+      {
+        "said": 0.792,
+        "happened": 0.758,
+        "n": 335
+      }
+    ],
+    "city": {
+      "flood_days": 67,
+      "days": 194,
+      "flood_days_flagged": 0.1791044776119403,
+      "flagged_days_that_flooded": 0.9230769230769231,
+      "flagged_days_with_any_flooding": 0.9230769230769231,
+      "quiet_days_flagged": 0.011627906976744186
+    },
+    "city_grid": {
+      "10+ wards, flag at 30%": {
+        "flood_days": 67,
+        "days": 194,
+        "flood_days_flagged": 0.34328358208955223,
+        "flagged_days_that_flooded": 0.8518518518518519,
+        "flagged_days_with_any_flooding": 0.8888888888888888,
+        "quiet_days_flagged": 0.03488372093023256
+      },
+      "10+ wards, flag at 55%": {
+        "flood_days": 67,
+        "days": 194,
+        "flood_days_flagged": 0.1791044776119403,
+        "flagged_days_that_flooded": 0.9230769230769231,
+        "flagged_days_with_any_flooding": 0.9230769230769231,
+        "quiet_days_flagged": 0.011627906976744186
+      },
+      "50+ wards, flag at 30%": {
+        "flood_days": 31,
+        "days": 194,
+        "flood_days_flagged": 0.6129032258064516,
+        "flagged_days_that_flooded": 0.7037037037037037,
+        "flagged_days_with_any_flooding": 0.8888888888888888,
+        "quiet_days_flagged": 0.03488372093023256
+      },
+      "50+ wards, flag at 55%": {
+        "flood_days": 31,
+        "days": 194,
+        "flood_days_flagged": 0.3225806451612903,
+        "flagged_days_that_flooded": 0.7692307692307693,
+        "flagged_days_with_any_flooding": 0.9230769230769231,
+        "quiet_days_flagged": 0.011627906976744186
+      }
+    }
+  }
+}

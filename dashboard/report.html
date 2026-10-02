@@ -1,0 +1,312 @@
+<!doctype html>
+<html lang="en">
+<meta charset="utf-8">
+<title>Report Flooding · FloodMind</title>
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,600..800&family=Figtree:wght@400;500;600;700&family=Noto+Sans+Tamil:wght@400;600&display=swap">
+<style>
+/* Layout: one column for a phone held in one hand. Three steps (where, what, how deep), one
+   big send button, then the result. Same three base colours as the dashboard. */
+:root {
+  --coral: oklch(0.74 0.12 32); --sea: oklch(0.70 0.06 222); --ink: oklch(0.28 0.02 32);
+  --bg: oklch(0.982 0.007 42); --surface: oklch(0.997 0.003 42); --muted: oklch(0.50 0.022 32);
+  --line: oklch(0.905 0.013 36); --good: oklch(0.60 0.09 160);
+  --soft-l: 0.955; --ink-shift: -0.21;
+  --coral-ink: color-mix(in oklch, var(--coral) 62%, var(--ink));
+  --coral-soft: color-mix(in oklch, var(--coral) 14%, var(--surface));
+  --sea-soft: color-mix(in oklch, var(--sea) 16%, var(--surface));
+  --r0: color-mix(in oklch, var(--coral) 12%, var(--bg));
+  --font-display: "Bricolage Grotesque", "Avenir Next", "Segoe UI", sans-serif;
+  --font-body: "Figtree", "Noto Sans Tamil", "Segoe UI", "Helvetica Neue", Arial, sans-serif;
+}
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) {
+    --coral: oklch(0.76 0.11 32); --sea: oklch(0.67 0.06 222); --ink: oklch(0.95 0.008 40);
+    --bg: oklch(0.205 0.012 32); --surface: oklch(0.245 0.014 32); --muted: oklch(0.74 0.02 35);
+    --line: oklch(0.335 0.016 32); --good: oklch(0.72 0.1 160); --soft-l: 0.29; --ink-shift: 0.06;
+    color-scheme: dark;
+  }
+}
+:root[data-theme="dark"] {
+  --coral: oklch(0.76 0.11 32); --sea: oklch(0.67 0.06 222); --ink: oklch(0.95 0.008 40);
+  --bg: oklch(0.205 0.012 32); --surface: oklch(0.245 0.014 32); --muted: oklch(0.74 0.02 35);
+  --line: oklch(0.335 0.016 32); --good: oklch(0.72 0.1 160); --soft-l: 0.29; --ink-shift: 0.06;
+  color-scheme: dark;
+}
+@supports (color: oklch(from red l c h)) {
+  :root {
+    --coral-ink: oklch(from var(--coral) calc(l + var(--ink-shift)) calc(c * 1.1) h);
+    --coral-soft: oklch(from var(--coral) var(--soft-l) calc(c * 0.25) h);
+    --sea-soft: oklch(from var(--sea) var(--soft-l) calc(c * 0.45) h);
+    --r0: oklch(from var(--coral) calc(var(--soft-l) + 0.01) calc(c * 0.15) h);
+  }
+}
+* { box-sizing: border-box; }
+[hidden] { display: none !important; }
+html, body { min-height: 100%; }
+body { margin: 0; background: var(--bg); color: var(--ink); font: 16px/1.5 var(--font-body); -webkit-font-smoothing: antialiased; }
+button, input { font: inherit; color: inherit; }
+button { cursor: pointer; }
+:focus-visible { outline: 2px solid var(--coral-ink); outline-offset: 2px; border-radius: 8px; }
+main { max-width: 520px; margin: 0 auto; padding-inline: 16px; padding-block: 18px 40px; display: grid; gap: 14px; }
+.top { display: flex; justify-content: space-between; align-items: center; gap: 10px; }
+.brand { font-family: var(--font-display); font-weight: 800; font-size: 1.3rem; letter-spacing: -0.02em; }
+.brand i { font-style: normal; color: var(--coral-ink); }
+.lang { display: inline-flex; border: 1px solid var(--line); border-radius: 999px; padding: 3px; background: var(--surface); }
+.lang button { border: 0; background: none; border-radius: 999px; padding: 4px 10px; font-size: 0.85rem; font-weight: 600; color: var(--muted); }
+.lang button[aria-pressed="true"] { background: var(--sea-soft); color: var(--ink); }
+h1 { margin: 0; font-family: var(--font-display); font-weight: 750; font-size: 1.75rem; line-height: 1.12; letter-spacing: -0.015em; text-wrap: balance; }
+.card { background: var(--surface); border: 1px solid var(--line); border-radius: 18px; padding: 16px; display: grid; gap: 12px; }
+.step { font-size: 0.78rem; font-weight: 700; letter-spacing: 0.08em; text-transform: uppercase; color: var(--coral-ink); }
+h2 { margin: 0; font-family: var(--font-display); font-weight: 650; font-size: 1.15rem; line-height: 1.25; }
+input[type="search"] { width: 100%; padding: 13px 14px; border: 1px solid var(--line); border-radius: 12px; background: var(--bg); font-size: 1rem; }
+.sugg { list-style: none; margin: 0; padding: 0; display: grid; gap: 4px; }
+.sugg button { width: 100%; text-align: left; border: 1px solid transparent; background: var(--bg); border-radius: 10px; padding: 10px 12px; display: flex; justify-content: space-between; gap: 10px; }
+.sugg button:hover { border-color: var(--coral); }
+.sugg .id { color: var(--muted); font-size: 0.85rem; flex: 0 0 auto; }
+.chosen { display: flex; justify-content: space-between; align-items: center; gap: 10px; padding: 12px 14px; border-radius: 12px; background: var(--coral-soft); }
+.chosen b { font-family: var(--font-display); font-size: 1.1rem; }
+.link { border: 0; background: none; color: var(--coral-ink); font-weight: 600; padding: 0; }
+.asks { display: flex; flex-wrap: wrap; gap: 6px; align-items: center; font-size: 0.85rem; color: var(--muted); }
+.asks button { border: 1px dashed var(--coral); background: none; border-radius: 999px; padding: 4px 10px; font-size: 0.85rem; color: var(--ink); }
+details summary { cursor: pointer; color: var(--coral-ink); font-weight: 600; font-size: 0.92rem; }
+svg.map { width: 100%; height: auto; max-height: 440px; display: block; margin-top: 8px; touch-action: manipulation; }
+.ward { fill: var(--r0); stroke: var(--surface); stroke-width: 0.8; }
+.ward.sel { fill: var(--coral); stroke: var(--ink); stroke-width: 1.4; }
+.big { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); gap: 10px; }
+.big button { border: 2px solid var(--line); background: var(--bg); border-radius: 16px; padding: 18px 12px; font-weight: 700; font-size: 1.05rem; display: grid; gap: 4px; justify-items: center; text-align: center; }
+.big button span { font-size: 0.8rem; font-weight: 500; color: var(--muted); }
+.big button[aria-pressed="true"].wet { border-color: var(--coral); background: var(--coral-soft); }
+.big button[aria-pressed="true"].dry { border-color: var(--sea); background: var(--sea-soft); }
+.depths { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 8px; }
+.depths button { border: 1px solid var(--line); background: var(--bg); border-radius: 12px; padding: 11px 8px; font-weight: 600; }
+.depths button span { display: block; font-size: 0.78rem; font-weight: 500; color: var(--muted); }
+.depths button[aria-pressed="true"] { border-color: var(--coral); background: var(--coral-soft); }
+.send { border: 0; background: var(--coral-ink); color: var(--surface); border-radius: 16px; padding: 16px; font-size: 1.1rem; font-weight: 700; }
+.send:disabled { opacity: 0.45; cursor: not-allowed; }
+.done { text-align: center; justify-items: center; }
+.done .chg { font-family: var(--font-display); font-weight: 800; font-size: 2.4rem; line-height: 1; }
+.done .chg em { font-style: normal; color: var(--coral-ink); }
+.err { padding: 12px 14px; border-radius: 12px; background: var(--coral-soft); font-size: 0.92rem; }
+.note { font-size: 0.82rem; color: var(--muted); margin: 0; }
+.top-r { display: flex; gap: 8px; align-items: center; }
+.themebtn { width: 36px; height: 36px; border: 1px solid var(--line); background: var(--surface); border-radius: 50%; display: grid; place-items: center; color: var(--coral-ink); }
+.themebtn svg { width: 17px; height: 17px; fill: none; stroke: currentColor; stroke-width: 1.8; stroke-linecap: round; stroke-linejoin: round; }
+.themebtn svg .fill { fill: currentColor; stroke: none; }
+</style>
+<script>
+/* Apply a saved theme before anything draws, so there is no flash of the wrong one. */
+try { const t = localStorage.getItem("floodmind-theme"); if (t === "light" || t === "dark") document.documentElement.dataset.theme = t; } catch {}
+</script>
+
+<main>
+  <div class="top">
+    <div class="brand">Flood<i>Mind</i></div>
+    <div class="top-r">
+    <button type="button" class="themebtn" id="themebtn"></button>
+    <div class="lang" role="group" aria-label="Language">
+      <button type="button" data-lang="en" aria-pressed="true">English</button>
+      <button type="button" data-lang="ta" aria-pressed="false">தமிழ்</button>
+    </div>
+    </div>
+  </div>
+  <h1 data-t="title"></h1>
+
+  <section class="card" id="form">
+    <span class="step" data-t="s1"></span>
+    <h2 data-t="where"></h2>
+    <div id="pick">
+      <input type="search" id="q" autocomplete="off" inputmode="search">
+      <ul class="sugg" id="sugg"></ul>
+      <div class="asks" id="asks" hidden></div>
+      <details id="mapbox"><summary data-t="tapmap"></summary><svg class="map" id="map" role="img" aria-label="Ward map"></svg></details>
+    </div>
+    <div class="chosen" id="chosen" hidden><div><b id="chosen-name"></b><div class="note" id="chosen-id"></div></div><button type="button" class="link" id="change" data-t="change"></button></div>
+  </section>
+
+  <section class="card">
+    <span class="step" data-t="s2"></span>
+    <h2 data-t="water"></h2>
+    <div class="big" role="group">
+      <button type="button" class="wet" id="wet" aria-pressed="false"><b data-t="yes"></b><span data-t="yes2"></span></button>
+      <button type="button" class="dry" id="dry" aria-pressed="false"><b data-t="no"></b><span data-t="no2"></span></button>
+    </div>
+  </section>
+
+  <section class="card" id="depthcard" hidden>
+    <span class="step" data-t="s3"></span>
+    <h2 data-t="deep"></h2>
+    <div class="depths" role="group">
+      <button type="button" data-d="10" aria-pressed="false"><b data-t="ankle"></b><span>≈ 10 cm</span></button>
+      <button type="button" data-d="45" aria-pressed="false"><b data-t="knee"></b><span>≈ 45 cm</span></button>
+      <button type="button" data-d="90" aria-pressed="false"><b data-t="waist"></b><span>≈ 90 cm</span></button>
+      <button type="button" data-d="120" aria-pressed="false"><b data-t="above"></b><span>120 cm +</span></button>
+    </div>
+  </section>
+
+  <div class="err" id="err" hidden></div>
+  <button type="button" class="send" id="send" disabled data-t="send"></button>
+
+  <section class="card done" id="done" hidden>
+    <h2 data-t="thanks"></h2>
+    <div class="chg" id="chg"></div>
+    <p class="note" id="done-note"></p>
+    <button type="button" class="link" id="again" data-t="again"></button>
+  </section>
+
+  <p class="note" data-t="privacy"></p>
+</main>
+
+<script>
+(() => {
+  const T = {
+    en: {
+      title: "Report flooding in your ward", s1: "Step 1", where: "Where are you?", tapmap: "Or tap your ward on the map",
+      search: "Search your area or ward number", change: "Change", s2: "Step 2", water: "Is there water on the street right now?",
+      yes: "Yes, flooded", yes2: "water on the street", no: "No, it's dry", no2: "no standing water", s3: "Step 3 · optional",
+      deep: "How deep is it?", ankle: "Ankle", knee: "Knee", waist: "Waist", above: "Above waist", send: "Send report",
+      thanks: "Thank you", again: "Report another ward", asks: "FloodMind would most like to hear from:",
+      changed: (b, a) => `Flood chance here: ${b}% → ${a}%`, screen: "The map on the big screen has updated, along with the wards around yours.",
+      privacy: "We store only the ward, your answer, the depth and the time. No name, phone number or location. Demonstration system; for emergencies call 1913 (GCC) or 112.",
+      offline: "Can't reach FloodMind. Check you're on the same Wi-Fi as the laptop, then try again.", pick: "Choose your ward first.",
+      ward: (w) => `GCC ward ${w}`,
+    },
+    ta: {
+      title: "உங்கள் வார்டில் வெள்ளத்தைப் பதிவு செய்யுங்கள்", s1: "படி 1", where: "நீங்கள் எங்கே இருக்கிறீர்கள்?", tapmap: "அல்லது வரைபடத்தில் உங்கள் வார்டைத் தொடுங்கள்",
+      search: "உங்கள் பகுதி அல்லது வார்டு எண்ணைத் தேடுங்கள்", change: "மாற்று", s2: "படி 2", water: "இப்போது தெருவில் தண்ணீர் தேங்கியுள்ளதா?",
+      yes: "ஆம், வெள்ளம்", yes2: "தெருவில் தண்ணீர்", no: "இல்லை", no2: "தண்ணீர் தேங்கவில்லை", s3: "படி 3 · விருப்பம்",
+      deep: "எவ்வளவு ஆழம்?", ankle: "கணுக்கால்", knee: "முழங்கால்", waist: "இடுப்பு", above: "இடுப்புக்கு மேல்", send: "அனுப்பு",
+      thanks: "நன்றி", again: "இன்னொரு வார்டைப் பதிவு செய்", asks: "FloodMind கேட்க விரும்பும் வார்டுகள்:",
+      changed: (b, a) => `இங்கு வெள்ள வாய்ப்பு: ${b}% → ${a}%`, screen: "பெரிய திரையில் உள்ள வரைபடமும் அருகிலுள்ள வார்டுகளும் புதுப்பிக்கப்பட்டன.",
+      privacy: "வார்டு, உங்கள் பதில், ஆழம், நேரம் மட்டுமே சேமிக்கப்படும். பெயர், தொலைபேசி எண், இருப்பிடம் சேமிக்கப்படாது. இது ஒரு செயல்விளக்க அமைப்பு; அவசரத்துக்கு 1913 (GCC) அல்லது 112 அழைக்கவும்.",
+      offline: "FloodMind-ஐ அணுக முடியவில்லை. மடிக்கணினியின் அதே Wi-Fi-இல் இருக்கிறீர்களா எனப் பார்த்து மீண்டும் முயலுங்கள்.", pick: "முதலில் உங்கள் வார்டைத் தேர்ந்தெடுங்கள்.",
+      ward: (w) => `GCC வார்டு ${w}`,
+    },
+  };
+  const $ = (id) => document.getElementById(id);
+  const esc = (s) => String(s).replace(/[&<>"]/g, (c) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;" }[c]));
+  const st = { lang: "en", ward: null, flooded: null, depth: null, wards: [], names: new Map() };
+  let device = null;
+  try { device = localStorage.getItem("floodmind-device"); } catch {}
+  if (!device) {
+    device = (crypto.randomUUID ? crypto.randomUUID() : Math.random().toString(36).slice(2) + Date.now().toString(36));
+    try { localStorage.setItem("floodmind-device", device); } catch {}
+  }
+  try { const l = localStorage.getItem("floodmind-lang"); if (l === "ta" || l === "en") st.lang = l; } catch {}
+
+  function tr() {
+    const t = T[st.lang];
+    document.documentElement.lang = st.lang;
+    document.querySelectorAll("[data-t]").forEach((e) => { const v = t[e.dataset.t]; if (typeof v === "string") e.textContent = v; });
+    $("q").placeholder = t.search;
+    document.querySelectorAll(".lang button").forEach((b) => b.setAttribute("aria-pressed", b.dataset.lang === st.lang));
+    if (st.ward) $("chosen-id").textContent = t.ward(st.ward);
+    renderAsks();
+  }
+  document.querySelectorAll(".lang button").forEach((b) => b.onclick = () => { st.lang = b.dataset.lang; try { localStorage.setItem("floodmind-lang", st.lang); } catch {} tr(); });
+
+  // ---------- ward choice ----------
+  const label = (w) => st.names.get(w) || `Ward ${w}`;
+  function choose(w) {
+    st.ward = w;
+    $("pick").hidden = true; $("chosen").hidden = false;
+    $("chosen-name").textContent = label(w); $("chosen-id").textContent = T[st.lang].ward(w);
+    document.querySelectorAll(".ward").forEach((p) => p.classList.toggle("sel", +p.dataset.w === w));
+    update();
+  }
+  $("change").onclick = () => { st.ward = null; $("pick").hidden = false; $("chosen").hidden = true; $("q").focus(); update(); };
+  $("q").oninput = () => {
+    const q = $("q").value.trim().toLowerCase().replace(/^ward\s*/, "");
+    const box = $("sugg");
+    if (!q) { box.innerHTML = ""; return; }
+    const hits = st.wards.filter((w) => String(w) === q || label(w).toLowerCase().includes(q)).slice(0, 6);
+    box.innerHTML = hits.map((w) => `<li><button type="button" data-w="${w}"><span>${esc(label(w))}</span><span class="id">${w}</span></button></li>`).join("");
+    box.querySelectorAll("button").forEach((b) => b.onclick = () => choose(+b.dataset.w));
+  };
+  let asks = [];
+  function renderAsks() {
+    const box = $("asks");
+    if (!asks.length || st.ward) { box.hidden = true; return; }
+    box.hidden = false;
+    box.innerHTML = `<span>${esc(T[st.lang].asks)}</span>` + asks.map((w) => `<button type="button" data-w="${w}">${esc(label(w))}</button>`).join("");
+    box.querySelectorAll("button").forEach((b) => b.onclick = () => choose(+b.dataset.w));
+  }
+
+  // ---------- answer ----------
+  $("wet").onclick = () => { st.flooded = true; update(); };
+  $("dry").onclick = () => { st.flooded = false; st.depth = null; update(); };
+  document.querySelectorAll(".depths button").forEach((b) => b.onclick = () => { st.depth = st.depth === +b.dataset.d ? null : +b.dataset.d; update(); });
+  function update() {
+    $("wet").setAttribute("aria-pressed", st.flooded === true);
+    $("dry").setAttribute("aria-pressed", st.flooded === false);
+    $("depthcard").hidden = st.flooded !== true;
+    document.querySelectorAll(".depths button").forEach((b) => b.setAttribute("aria-pressed", +b.dataset.d === st.depth));
+    $("send").disabled = !(st.ward && st.flooded !== null);
+    $("err").hidden = true;
+  }
+
+  $("send").onclick = async () => {
+    const t = T[st.lang];
+    if (!st.ward) { $("err").textContent = t.pick; $("err").hidden = false; return; }
+    $("send").disabled = true;
+    try {
+      const r = await fetch("api/reports", { method: "POST", headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ ward_id: st.ward, flooded: st.flooded, depth_cm: st.flooded ? st.depth : 0, device }) });
+      const j = await r.json().catch(() => ({}));
+      if (!r.ok) { $("err").textContent = j.detail && typeof j.detail === "string" ? j.detail : t.offline; $("err").hidden = false; $("send").disabled = false; return; }
+      $("form").hidden = true; document.querySelectorAll(".card:not(#done):not(#form)").forEach((c) => c.hidden = true);
+      $("send").hidden = true;
+      $("done").hidden = false;
+      $("chg").innerHTML = esc(t.changed(j.p_before, j.p_now)).replace(/(\d+%)$/, "<em>$1</em>");
+      $("done-note").textContent = `${label(st.ward)} · ${t.screen}`;
+    } catch {
+      $("err").textContent = t.offline; $("err").hidden = false; $("send").disabled = false;
+    }
+  };
+  $("again").onclick = () => {
+    st.ward = null; st.flooded = null; st.depth = null;
+    $("form").hidden = false; $("pick").hidden = false; $("chosen").hidden = true; $("send").hidden = false; $("done").hidden = true;
+    document.querySelectorAll(".card").forEach((c) => { if (c.id !== "done" && c.id !== "depthcard") c.hidden = false; });
+    $("q").value = ""; $("sugg").innerHTML = ""; update(); loadAsks();
+  };
+
+  // ---------- data ----------
+  async function loadAsks() {
+    try { const j = await (await fetch("api/correction", { cache: "no-store" })).json(); asks = j.ask_next || []; } catch { asks = []; }
+    renderAsks();
+  }
+  // Theme: one button cycling light → dark → follow the device.
+  const ICONS = { light: `<svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="4.2"/><path d="M12 2.5v2.2M12 19.3v2.2M2.5 12h2.2M19.3 12h2.2M5.3 5.3l1.6 1.6M17.1 17.1l1.6 1.6M5.3 18.7l1.6-1.6M17.1 6.9l1.6-1.6"/></svg>`, dark: `<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M20 14.6A8.2 8.2 0 0 1 9.4 4a8.2 8.2 0 1 0 10.6 10.6z"/></svg>`, system: `<svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="8.5"/><path d="M12 3.5a8.5 8.5 0 0 1 0 17z" class="fill"/></svg>` };
+  const NAMES = { light: "Light theme", dark: "Dark theme", system: "Theme follows this device" };
+  function applyTheme(t, save) {
+    if (t === "system") delete document.documentElement.dataset.theme; else document.documentElement.dataset.theme = t;
+    if (save) { try { t === "system" ? localStorage.removeItem("floodmind-theme") : localStorage.setItem("floodmind-theme", t); } catch {} }
+    const b = $("themebtn"); b.innerHTML = ICONS[t]; b.setAttribute("aria-label", NAMES[t] + ". Tap to change."); b.title = NAMES[t]; b.dataset.t = t;
+  }
+  $("themebtn").onclick = () => applyTheme({ light: "dark", dark: "system", system: "light" }[$("themebtn").dataset.t], true);
+  applyTheme(document.documentElement.dataset.theme || "system", false);
+
+  (async () => {
+    tr(); update();
+    try {
+      const gj = await (await fetch("api/wards")).json();
+      gj.features.forEach((f) => st.names.set(f.properties.ward_id, f.properties.name ? f.properties.name.replace(/^near /, "") : ""));
+      st.wards = gj.features.map((f) => f.properties.ward_id).sort((a, b) => a - b);
+      drawMap(gj);
+      loadAsks();
+    } catch { $("err").textContent = T[st.lang].offline; $("err").hidden = false; }
+  })();
+
+  function drawMap(gj) {
+    const rings = (g) => g.type === "Polygon" ? g.coordinates : g.coordinates.flat();
+    let x0 = 1e9, x1 = -1e9, y0 = 1e9, y1 = -1e9;
+    gj.features.forEach((f) => rings(f.geometry).forEach((r) => r.forEach(([x, y]) => { x0 = Math.min(x0, x); x1 = Math.max(x1, x); y0 = Math.min(y0, y); y1 = Math.max(y1, y); })));
+    const kx = Math.cos((y0 + y1) / 2 * Math.PI / 180), W = 300, S = W / ((x1 - x0) * kx), H = (y1 - y0) * S;
+    const svg = $("map"); svg.setAttribute("viewBox", `-4 -4 ${W + 8} ${H + 8}`);
+    svg.innerHTML = gj.features.map((f) => `<path class="ward" data-w="${f.properties.ward_id}" d="${rings(f.geometry).map((r) => "M" + r.map(([x, y]) => `${((x - x0) * kx * S).toFixed(1)},${((y1 - y) * S).toFixed(1)}`).join("L") + "Z").join("")}"><title>${esc(label(f.properties.ward_id))}</title></path>`).join("");
+    svg.querySelectorAll(".ward").forEach((p) => p.addEventListener("click", () => choose(+p.dataset.w)));
+  }
+})();
+</script>
+</html>

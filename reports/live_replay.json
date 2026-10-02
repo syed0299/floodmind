@@ -1,0 +1,28 @@
+{
+  "imd_final": {
+    "pr_auc": 0.5273328630783098,
+    "roc_auc": 0.8268245058127337,
+    "brier": 0.08552957473762873,
+    "n_ward_days": 38800,
+    "gap_vs_reference": 0.0
+  },
+  "imd_rt": {
+    "pr_auc": 0.5258427181246061,
+    "roc_auc": 0.8255184631404413,
+    "brier": 0.08585872136869756,
+    "n_ward_days": 38800,
+    "gap_vs_reference": -0.0014901449537036981,
+    "rain_7d_corr_vs_imd_final": 0.9978289044662901,
+    "rain_7d_ratio_vs_imd_final": 0.980048250623565
+  },
+  "ecmwf": {
+    "pr_auc": 0.5255521042507495,
+    "roc_auc": 0.8204280403054417,
+    "brier": 0.08706132523533999,
+    "n_ward_days": 38800,
+    "gap_vs_reference": -0.001780758827560347,
+    "rain_7d_corr_vs_imd_final": 0.9333483668245447,
+    "rain_7d_ratio_vs_imd_final": 0.9965045532730308
+  },
+  "reference_forecast_mode_pr_auc": 0.5273328630783098
+}

@@ -1,0 +1,871 @@
+<title>FloodMind Chennai</title>
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,500..800&family=Figtree:wght@400;500;600;700&family=Geist+Mono:wght@400;500&family=Noto+Sans+Tamil:wght@400;600&display=swap">
+<style>
+/* Layout: a calm forecast desk. Status and views on top; each view leads with its answer
+   (today's headline, or the flood and day being replayed), then the ward map beside a
+   detail column. Three base colours (coral, sea, ink); every other shade is derived from
+   them with CSS relative colours, so both themes and both ramps stay in tune. */
+:root {
+  --coral: oklch(0.74 0.12 32);
+  --sea: oklch(0.70 0.06 222);
+  --ink: oklch(0.28 0.02 32);
+  --bg: oklch(0.982 0.007 42);
+  --surface: oklch(0.997 0.003 42);
+  --muted: oklch(0.50 0.022 32);
+  --line: oklch(0.905 0.013 36);
+  --good: oklch(0.60 0.09 160);
+  --warn: oklch(0.70 0.11 75);
+  /* lightness steps for the derived ramps; the dark theme swaps only these */
+  --l0: 0.962; --l1: 0.905; --l2: 0.83; --l3: 0.735; --l4: 0.60;
+  --soft-l: 0.955; --water-l: 0.885; --ink-shift: -0.21;
+
+  /* fallbacks for browsers without relative colour syntax */
+  --r0: color-mix(in oklch, var(--coral) 12%, var(--bg));
+  --r1: color-mix(in oklch, var(--coral) 35%, var(--bg));
+  --r2: color-mix(in oklch, var(--coral) 62%, var(--bg));
+  --r3: var(--coral);
+  --r4: color-mix(in oklch, var(--coral) 72%, var(--ink));
+  --d0: color-mix(in oklch, var(--sea) 8%, var(--bg));
+  --d1: color-mix(in oklch, var(--sea) 30%, var(--bg));
+  --d2: color-mix(in oklch, var(--sea) 55%, var(--bg));
+  --d3: var(--sea);
+  --d4: color-mix(in oklch, var(--sea) 70%, var(--ink));
+  --coral-ink: color-mix(in oklch, var(--coral) 62%, var(--ink));
+  --coral-soft: color-mix(in oklch, var(--coral) 14%, var(--surface));
+  --sea-soft: color-mix(in oklch, var(--sea) 16%, var(--surface));
+  --water: color-mix(in oklch, var(--sea) 32%, var(--bg));
+  --shadow: color-mix(in oklch, var(--ink) 9%, transparent);
+  --hover: color-mix(in oklch, var(--coral) 12%, transparent);
+
+  --font-display: "Bricolage Grotesque", "Avenir Next", "Segoe UI", sans-serif;
+  --font-body: "Figtree", "Segoe UI", "Helvetica Neue", Arial, sans-serif;
+  --font-data: "Geist Mono", ui-monospace, "SF Mono", Menlo, Consolas, monospace;
+  --font-tamil: "Noto Sans Tamil", "Tamil Sangam MN", "Latha", sans-serif;
+  --radius: 16px;
+  --radius-sm: 10px;
+}
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) {
+    --coral: oklch(0.76 0.11 32); --sea: oklch(0.67 0.06 222); --ink: oklch(0.95 0.008 40);
+    --bg: oklch(0.205 0.012 32); --surface: oklch(0.245 0.014 32); --muted: oklch(0.74 0.02 35);
+    --line: oklch(0.335 0.016 32); --good: oklch(0.72 0.1 160); --warn: oklch(0.78 0.11 75);
+    --l0: 0.30; --l1: 0.40; --l2: 0.52; --l3: 0.655; --l4: 0.80;
+    --soft-l: 0.29; --water-l: 0.34; --ink-shift: 0.06;
+    color-scheme: dark;
+  }
+}
+:root[data-theme="dark"] {
+  --coral: oklch(0.76 0.11 32); --sea: oklch(0.67 0.06 222); --ink: oklch(0.95 0.008 40);
+  --bg: oklch(0.205 0.012 32); --surface: oklch(0.245 0.014 32); --muted: oklch(0.74 0.02 35);
+  --line: oklch(0.335 0.016 32); --good: oklch(0.72 0.1 160); --warn: oklch(0.78 0.11 75);
+  --l0: 0.30; --l1: 0.40; --l2: 0.52; --l3: 0.655; --l4: 0.80;
+  --soft-l: 0.29; --water-l: 0.34; --ink-shift: 0.06;
+  color-scheme: dark;
+}
+@supports (color: oklch(from red l c h)) {
+  :root {
+    --r0: oklch(from var(--coral) var(--l0) calc(c * 0.18) h);
+    --r1: oklch(from var(--coral) var(--l1) calc(c * 0.5) h);
+    --r2: oklch(from var(--coral) var(--l2) calc(c * 0.85) h);
+    --r3: oklch(from var(--coral) var(--l3) calc(c * 1.08) h);
+    --r4: oklch(from var(--coral) var(--l4) calc(c * 1.15) calc(h - 8));
+    --d0: oklch(from var(--sea) var(--l0) calc(c * 0.25) h);
+    --d1: oklch(from var(--sea) var(--l1) calc(c * 0.6) h);
+    --d2: oklch(from var(--sea) var(--l2) calc(c * 1) h);
+    --d3: oklch(from var(--sea) var(--l3) calc(c * 1.3) h);
+    --d4: oklch(from var(--sea) var(--l4) calc(c * 1.5) calc(h + 6));
+    --coral-ink: oklch(from var(--coral) calc(l + var(--ink-shift)) calc(c * 1.1) h);
+    --coral-soft: oklch(from var(--coral) var(--soft-l) calc(c * 0.25) h);
+    --sea-soft: oklch(from var(--sea) var(--soft-l) calc(c * 0.45) h);
+    --water: oklch(from var(--sea) var(--water-l) calc(c * 0.6) h);
+    --shadow: oklch(from var(--ink) l c h / 0.09);
+    --hover: oklch(from var(--coral) l c h / 0.12);
+  }
+}
+
+* { box-sizing: border-box; }
+[hidden] { display: none !important; }
+html, body { min-height: 100%; }
+body { margin: 0; background: var(--bg); color: var(--ink); font: 15px/1.5 var(--font-body); -webkit-font-smoothing: antialiased; }
+button, input { font: inherit; color: inherit; }
+button { cursor: pointer; }
+:focus-visible { outline: 2px solid var(--coral-ink); outline-offset: 2px; border-radius: 6px; }
+.wrap { max-width: 1400px; margin: 0 auto; padding-inline: 16px; padding-block: 16px 36px; display: grid; grid-template-columns: minmax(0, 1fr); gap: 18px; }
+.wrap > * { min-width: 0; }
+.num { font-family: var(--font-data); font-variant-numeric: tabular-nums; }
+.eyebrow { font-size: 0.74rem; font-weight: 600; letter-spacing: 0.09em; text-transform: uppercase; color: var(--muted); }
+
+/* top bar */
+.top { display: flex; flex-wrap: wrap; align-items: center; gap: 12px 20px; }
+.brand { display: flex; align-items: baseline; gap: 10px; margin-right: auto; }
+.brand b { font-family: var(--font-display); font-size: 1.6rem; font-weight: 800; letter-spacing: -0.02em; }
+.brand b i { font-style: normal; color: var(--coral-ink); }
+.brand span { color: var(--muted); font-size: 0.9rem; }
+.views { display: inline-flex; flex-wrap: wrap; gap: 4px; padding: 4px; background: var(--surface); border: 1px solid var(--line); border-radius: 999px; }
+.views button { border: 0; background: none; padding: 7px 14px; border-radius: 999px; font-weight: 600; font-size: 0.9rem; color: var(--muted); transition: background 0.2s, color 0.2s; }
+.views button:hover { color: var(--ink); background: var(--hover); }
+.views button[aria-current="page"] { background: var(--coral-soft); color: var(--coral-ink); }
+.status { display: inline-flex; align-items: center; gap: 8px; font-size: 0.85rem; color: var(--muted); padding: 6px 12px; border-radius: 999px; background: var(--surface); border: 1px solid var(--line); }
+.dot { position: relative; width: 9px; height: 9px; border-radius: 50%; background: var(--muted); flex: 0 0 auto; }
+.status[data-mode="live"] .dot { background: var(--good); }
+.status[data-mode="running"] .dot { background: var(--coral); }
+.status[data-mode="stale"] .dot { background: var(--warn); }
+@media (prefers-reduced-motion: no-preference) {
+  .status[data-mode="live"] .dot::after, .status[data-mode="running"] .dot::after {
+    content: ""; position: absolute; inset: 0; border-radius: 50%; background: inherit; animation: ping 2.4s ease-out infinite; }
+  .status[data-mode="running"] .dot::after { animation-duration: 1s; }
+}
+@keyframes ping { from { transform: scale(1); opacity: 0.55; } to { transform: scale(2.8); opacity: 0; } }
+.status button { border: 0; background: none; color: var(--coral-ink); font-weight: 600; padding: 0 0 0 4px; }
+
+/* context strip (headline / event picker) */
+.context { display: grid; gap: 14px; }
+.hero { display: grid; grid-template-columns: minmax(0, 1.2fr) minmax(0, 1fr); gap: 18px; align-items: stretch; }
+@media (max-width: 860px) { .hero { grid-template-columns: minmax(0, 1fr); } }
+.headline { display: grid; gap: 8px; align-content: center; }
+.headline h1 { margin: 0; font-family: var(--font-display); font-weight: 700; font-size: clamp(1.8rem, 3.6vw, 2.7rem); line-height: 1.08; letter-spacing: -0.02em; text-wrap: balance; }
+.headline h1 em { font-style: normal; color: var(--coral-ink); }
+.headline p { margin: 0; color: var(--muted); max-width: 62ch; }
+.targets { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 12px; }
+.target { text-align: left; border: 1px solid var(--line); background: var(--surface); border-radius: var(--radius); padding: 14px 16px; display: grid; gap: 6px; transition: border-color 0.2s, box-shadow 0.2s, transform 0.2s; }
+.target:hover { border-color: var(--r2); }
+.target[aria-pressed="true"] { border-color: var(--coral); box-shadow: 0 0 0 3px var(--hover), 0 8px 24px -16px var(--shadow); }
+.target .when { font-size: 0.8rem; color: var(--muted); }
+.target .big { font-family: var(--font-display); font-size: 2rem; font-weight: 700; line-height: 1; }
+.target .sub { font-size: 0.82rem; color: var(--muted); }
+
+.chips { display: flex; gap: 8px; overflow-x: auto; padding-bottom: 2px; scrollbar-width: thin; }
+.chip { flex: 0 0 auto; border: 1px solid var(--line); background: var(--surface); border-radius: 999px; padding: 7px 14px; font-size: 0.88rem; font-weight: 500; transition: background 0.2s, border-color 0.2s; }
+.chip:hover { border-color: var(--r2); }
+.chip[aria-pressed="true"] { background: var(--coral-soft); border-color: var(--coral); color: var(--coral-ink); font-weight: 600; }
+.row { display: flex; flex-wrap: wrap; gap: 10px; align-items: center; }
+.seg { display: inline-flex; flex-wrap: wrap; border: 1px solid var(--line); border-radius: 999px; padding: 3px; background: var(--surface); max-width: 100%; }
+.seg button { border: 0; background: none; border-radius: 999px; padding: 5px 12px; font-size: 0.85rem; font-weight: 600; color: var(--muted); }
+.seg button[aria-pressed="true"] { background: var(--sea-soft); color: var(--ink); }
+.seg button:disabled { opacity: 0.4; cursor: not-allowed; }
+.days { display: flex; gap: 8px; overflow-x: auto; padding-bottom: 4px; scrollbar-width: thin; }
+.day { flex: 0 0 auto; width: 84px; border: 1px solid var(--line); background: var(--surface); border-radius: var(--radius-sm); padding: 8px 10px 7px; text-align: left; display: grid; gap: 4px; transition: border-color 0.2s; }
+.day:hover { border-color: var(--r2); }
+.day[aria-pressed="true"] { border-color: var(--coral); box-shadow: 0 0 0 3px var(--hover); }
+.day .d { font-size: 0.75rem; color: var(--muted); }
+.day .bar { height: 34px; display: flex; align-items: flex-end; }
+.day .bar i { display: block; width: 100%; background: var(--sea); border-radius: 4px 4px 1px 1px; min-height: 2px; }
+.day .mm { font-family: var(--font-data); font-size: 0.78rem; }
+.note { font-size: 0.82rem; color: var(--muted); margin: 0; }
+
+/* stage: map + side column */
+.stage { display: grid; grid-template-columns: minmax(0, 1.3fr) minmax(0, 1fr); gap: 18px; align-items: start; }
+@media (max-width: 960px) { .stage { grid-template-columns: minmax(0, 1fr); } }
+.card { background: var(--surface); border: 1px solid var(--line); border-radius: var(--radius); box-shadow: 0 10px 30px -24px var(--shadow); min-width: 0; }
+.mapcard { position: relative; padding: 14px 14px 10px; }
+.maphead { display: flex; justify-content: space-between; align-items: baseline; gap: 10px; flex-wrap: wrap; padding: 2px 4px 6px; }
+.maphead h2 { margin: 0; font-family: var(--font-display); font-weight: 650; font-size: 1.05rem; text-wrap: balance; }
+.toggle { display: inline-flex; gap: 6px; align-items: center; font-size: 0.82rem; color: var(--muted); cursor: pointer; }
+.toggle input { accent-color: var(--coral-ink); }
+svg.map { display: block; width: 100%; height: auto; max-height: 76vh; }
+.ward { stroke: var(--surface); stroke-width: 0.7; cursor: pointer; transition: fill 0.45s ease; }
+.ward:hover { stroke: var(--ink); stroke-width: 1.2; }
+.ward.sel { stroke: var(--ink); stroke-width: 2; }
+@media (prefers-reduced-motion: reduce) { .ward, .target, .chip { transition: none; } }
+.r0 { fill: var(--r0); } .r1 { fill: var(--r1); } .r2 { fill: var(--r2); } .r3 { fill: var(--r3); } .r4 { fill: var(--r4); }
+.d0 { fill: var(--d0); } .d1 { fill: var(--d1); } .d2 { fill: var(--d2); } .d3 { fill: var(--d3); } .d4 { fill: var(--d4); }
+.lake { fill: var(--water); stroke: var(--sea); stroke-width: 0.4; pointer-events: none; }
+.river { fill: none; stroke: var(--sea); stroke-width: 1.6; stroke-linecap: round; pointer-events: none; opacity: 0.85; }
+.truth { fill: var(--ink); stroke: var(--surface); stroke-width: 0.8; pointer-events: none; }
+.obs-ring { fill: none; stroke: var(--ink); stroke-width: 2.2; pointer-events: none; }
+.obs-dry { fill: none; stroke: var(--good); stroke-width: 2.2; pointer-events: none; }
+.ask-next { fill: none; stroke: var(--coral-ink); stroke-width: 2.4; stroke-dasharray: 4 3; pointer-events: none; }
+@media (prefers-reduced-motion: no-preference) { .ask-next { animation: dash 1.2s linear infinite; } }
+@keyframes dash { to { stroke-dashoffset: -14; } }
+.scale text, .north text { fill: var(--muted); font: 500 9px var(--font-data); }
+.scale line, .north path { stroke: var(--muted); stroke-width: 1; fill: none; }
+.legend { display: flex; flex-wrap: wrap; gap: 8px 14px; align-items: center; font-size: 0.78rem; color: var(--muted); padding: 8px 4px 2px; }
+.legend .sw { display: inline-flex; align-items: center; gap: 6px; }
+.legend .sw i { width: 16px; height: 10px; border-radius: 3px; display: inline-block; }
+.tip { position: absolute; z-index: 5; pointer-events: none; background: var(--ink); color: var(--bg); padding: 9px 11px; border-radius: var(--radius-sm); font-size: 0.82rem; line-height: 1.4; max-width: 240px; box-shadow: 0 8px 24px -10px var(--shadow); }
+.tip b { font-family: var(--font-display); font-weight: 650; }
+
+.side { display: grid; gap: 14px; min-width: 0; }
+.panel { padding: 16px 18px; display: grid; gap: 12px; }
+.panel h3 { margin: 0; font-family: var(--font-display); font-weight: 650; font-size: 1.05rem; text-wrap: balance; }
+.wardcard { display: grid; grid-template-columns: auto minmax(0, 1fr); gap: 16px; align-items: center; }
+.gauge { width: 104px; height: 104px; }
+.gauge .track { stroke: var(--coral-soft); }
+.gauge .val { stroke: var(--coral); transition: stroke-dashoffset 0.6s ease; }
+.gauge text { fill: var(--ink); font-family: var(--font-display); font-weight: 700; }
+.facts { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 10px 14px; }
+.fact { display: grid; gap: 1px; }
+.fact .v { font-family: var(--font-data); font-size: 1rem; }
+.fact .k { font-size: 0.76rem; color: var(--muted); }
+.wardname { font-family: var(--font-display); font-weight: 700; font-size: 1.3rem; line-height: 1.15; }
+.list { list-style: none; margin: 0; padding: 0; display: grid; gap: 2px; }
+.list li button { width: 100%; border: 0; background: none; display: grid; grid-template-columns: 2.6rem minmax(0, 1fr) 3rem; gap: 4px 8px; align-items: center; padding: 6px 6px; border-radius: var(--radius-sm); text-align: left; }
+.list li button:hover, .list li button[aria-current="true"] { background: var(--hover); }
+.list .id { font-family: var(--font-data); font-size: 0.75rem; color: var(--muted); }
+.list .nm { white-space: nowrap; overflow: hidden; text-overflow: ellipsis; font-size: 0.9rem; }
+.list .pv { font-family: var(--font-data); text-align: right; font-size: 0.88rem; }
+.list .meter { grid-column: 2 / 4; height: 5px; border-radius: 3px; background: var(--coral-soft); overflow: hidden; }
+.list .meter i { display: block; height: 100%; border-radius: 3px; transition: width 0.5s ease; }
+.adv p { margin: 0; font-size: 0.9rem; padding: 10px 12px; border-radius: var(--radius-sm); background: var(--coral-soft); }
+.adv p[lang="ta"] { font-family: var(--font-tamil); line-height: 1.65; }
+.calm { display: flex; gap: 10px; align-items: flex-start; padding: 12px; border-radius: var(--radius-sm); background: var(--sea-soft); font-size: 0.9rem; }
+.calm .dot { margin-top: 6px; background: var(--good); }
+details { border: 1px solid var(--line); border-radius: var(--radius-sm); padding: 8px 12px; }
+summary { cursor: pointer; font-size: 0.85rem; color: var(--coral-ink); font-weight: 600; }
+pre { font-family: var(--font-data); font-size: 0.7rem; overflow-x: auto; margin: 8px 0 0; }
+.btn { border: 1px solid var(--coral); color: var(--coral-ink); background: var(--surface); border-radius: 999px; padding: 5px 12px; font-size: 0.82rem; font-weight: 600; }
+.btn:hover { background: var(--coral-soft); }
+.tiles { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 10px; }
+.tile { border-radius: var(--radius-sm); background: var(--bg); padding: 10px 12px; display: grid; gap: 2px; }
+.tile .v { font-family: var(--font-display); font-weight: 700; font-size: 1.45rem; line-height: 1.1; font-variant-numeric: tabular-nums; }
+.tile .k { font-size: 0.78rem; color: var(--muted); }
+.verdict { font-size: 0.9rem; padding: 10px 12px; border-radius: var(--radius-sm); background: var(--sea-soft); }
+.feed { list-style: none; margin: 0; padding: 0; display: grid; gap: 6px; font-size: 0.86rem; }
+.feed li { display: flex; gap: 8px; align-items: baseline; }
+.feed .n { font-family: var(--font-data); font-size: 0.74rem; color: var(--muted); width: 1.3rem; flex: 0 0 auto; }
+.feed .t { font-family: var(--font-data); font-size: 0.74rem; color: var(--muted); flex: 0 0 auto; min-width: 2.9rem; }
+.pill { font-size: 0.7rem; font-weight: 700; letter-spacing: 0.04em; text-transform: uppercase; padding: 2px 8px; border-radius: 999px; flex: 0 0 auto; }
+.pill.f { background: var(--r3); color: var(--ink); } .pill.dry { background: var(--sea-soft); color: var(--ink); }
+input[type="range"] { width: 100%; accent-color: var(--coral-ink); }
+
+/* rain strip */
+.rain { padding: 16px 18px 12px; display: grid; gap: 8px; }
+.rain svg { width: 100%; min-width: 560px; height: auto; display: block; }
+.rain text { fill: var(--muted); font: 500 10px var(--font-data); }
+.rain .grid { stroke: var(--line); }
+.rain .past { fill: var(--sea); } .rain .est { fill: var(--sea); opacity: 0.45; } .rain .fc { fill: var(--coral); }
+.rain .val { fill: var(--ink); }
+
+/* tables & scorecard */
+.tablebox { overflow-x: auto; }
+table { border-collapse: collapse; width: 100%; font-size: 0.87rem; }
+th, td { text-align: left; padding: 7px 8px; border-bottom: 1px solid var(--line); }
+th { font-size: 0.74rem; font-weight: 600; letter-spacing: 0.06em; text-transform: uppercase; color: var(--muted); }
+td.n, th.n { text-align: right; font-family: var(--font-data); font-variant-numeric: tabular-nums; }
+tr.us td { background: var(--coral-soft); font-weight: 600; }
+.score { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 18px; }
+@media (max-width: 900px) { .score { grid-template-columns: minmax(0, 1fr); } }
+.chart text { fill: var(--muted); font: 500 10px var(--font-data); }
+.chart .grid { stroke: var(--line); }
+ul.limits { margin: 0; padding-left: 18px; display: grid; gap: 6px; font-size: 0.88rem; }
+.trend-up { color: var(--coral-ink); font-weight: 600; } .trend-down { color: var(--good); font-weight: 600; }
+.qr { display: grid; grid-template-columns: 112px minmax(0, 1fr); gap: 14px; align-items: center; }
+.qr img { width: 112px; height: 112px; border-radius: 10px; background: #fff; padding: 6px; border: 1px solid var(--line); }
+.qr code { font-family: var(--font-data); font-size: 0.85rem; word-break: break-all; color: var(--coral-ink); }
+.repbtns { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); gap: 8px; }
+.repbtns button { border: 1px solid var(--line); background: var(--bg); border-radius: var(--radius-sm); padding: 9px 10px; font-weight: 600; font-size: 0.88rem; }
+.repbtns button.wet:hover { border-color: var(--coral); background: var(--coral-soft); }
+.repbtns button.dry:hover { border-color: var(--sea); background: var(--sea-soft); }
+.counts { display: flex; flex-wrap: wrap; gap: 6px 14px; font-size: 0.86rem; color: var(--muted); }
+.counts b { color: var(--ink); font-family: var(--font-data); }
+.danger { border: 1px solid var(--line); background: none; color: var(--muted); border-radius: 999px; padding: 4px 12px; font-size: 0.8rem; }
+.danger.armed { border-color: var(--coral-ink); color: var(--coral-ink); font-weight: 600; }
+footer { color: var(--muted); font-size: 0.78rem; line-height: 1.6; }
+@media (max-width: 520px) {
+  .brand b { font-size: 1.35rem; }
+  .targets { grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); gap: 8px; }
+  .target .big { font-size: 1.6rem; }
+  .facts { grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); }
+  .wardcard { grid-template-columns: minmax(0, 1fr); justify-items: start; }
+}
+.theme { display: inline-flex; gap: 2px; padding: 3px; background: var(--surface); border: 1px solid var(--line); border-radius: 999px; }
+.theme button { width: 30px; height: 30px; border: 0; background: none; border-radius: 50%; display: grid; place-items: center; color: var(--muted); transition: background 0.2s, color 0.2s; }
+.theme button:hover { color: var(--ink); background: var(--hover); }
+.theme button[aria-pressed="true"] { background: var(--coral-soft); color: var(--coral-ink); }
+.theme svg { width: 16px; height: 16px; fill: none; stroke: currentColor; stroke-width: 1.8; stroke-linecap: round; stroke-linejoin: round; }
+.theme svg .fill { fill: currentColor; stroke: none; }
+</style>
+<script>
+/* Apply a saved theme before anything draws, so there is no flash of the wrong one. */
+try { const t = localStorage.getItem("floodmind-theme"); if (t === "light" || t === "dark") document.documentElement.dataset.theme = t; } catch {}
+</script>
+
+<div class="wrap">
+  <header class="top">
+    <div class="brand"><b>Flood<i>Mind</i></b><span>Chennai · 200 wards</span></div>
+    <nav class="views" aria-label="Views">
+      <button type="button" data-view="today">Today</button>
+      <button type="button" data-view="replay">Replay a flood</button>
+      <button type="button" data-view="drains">Drain check</button>
+      <button type="button" data-view="score">Scorecard</button>
+    </nav>
+    <div class="status" id="status" data-mode="snapshot" role="status"><span class="dot"></span><span id="status-text">Loading forecast</span></div>
+    <div class="theme" role="group" aria-label="Colour theme">
+      <button type="button" data-theme-set="light" title="Light" aria-label="Light theme"><svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="4.2"/><path d="M12 2.5v2.2M12 19.3v2.2M2.5 12h2.2M19.3 12h2.2M5.3 5.3l1.6 1.6M17.1 17.1l1.6 1.6M5.3 18.7l1.6-1.6M17.1 6.9l1.6-1.6"/></svg></button>
+      <button type="button" data-theme-set="dark" title="Dark" aria-label="Dark theme"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M20 14.6A8.2 8.2 0 0 1 9.4 4a8.2 8.2 0 1 0 10.6 10.6z"/></svg></button>
+      <button type="button" data-theme-set="system" title="Match this device" aria-label="Match this device's theme"><svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="8.5"/><path d="M12 3.5a8.5 8.5 0 0 1 0 17z" class="fill"/></svg></button>
+    </div>
+  </header>
+
+  <section class="context" id="context" aria-live="polite"></section>
+
+  <main class="stage" id="stage">
+    <figure class="card mapcard" style="margin:0">
+      <div class="maphead">
+        <h2 id="map-title"></h2>
+        <label class="toggle" id="truth-wrap" hidden><input type="checkbox" id="truth" checked> Show reported floods</label>
+      </div>
+      <svg class="map" id="map" role="img" aria-label="Map of Chennai's 200 wards"></svg>
+      <div class="legend" id="legend"></div>
+      <div class="tip" id="tip" hidden></div>
+    </figure>
+    <aside class="side" id="side"></aside>
+  </main>
+
+  <section id="below"></section>
+
+  <footer>
+    Data: Google Groundsource flood events (CC BY 4.0) and curated news · IMD gridded and real-time rainfall · ECMWF IFS forecasts via Open-Meteo · Copernicus GLO-30 elevation · ESA WorldCover · WorldPop · © OpenStreetMap contributors · GCC ward map via OpenCity.
+    Advisories are demonstrations, not official warnings; official alerts come from IMD and TN-Alert.
+  </footer>
+</div>
+
+<script>
+/*__FLOODMIND_DATA__*/
+</script>
+<script>
+(() => {
+  const D = window.FLOODMIND;
+  const $ = (id) => document.getElementById(id);
+  const fmt = new Intl.NumberFormat("en-IN");
+  const wardsF = D.wards.features;
+  const ids = wardsF.map((f) => f.properties.ward_id).sort((a, b) => a - b);
+  const pos = new Map(ids.map((w, i) => [w, i]));
+  const props = new Map(wardsF.map((f) => [f.properties.ward_id, f.properties]));
+  const nameOf = (w) => props.get(w)?.name || "";
+  const label = (w) => `Ward ${w}${nameOf(w) ? " · " + nameOf(w) : ""}`;
+  const pct = (p) => `${Math.round(p * 100)}%`;
+  const esc = (s) => String(s).replace(/[&<>"]/g, (c) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;" }[c]));
+  const dateFmt = (iso, o) => new Date(iso + (iso.length === 10 ? "T00:00:00" : "")).toLocaleDateString("en-IN", o);
+  const riskClass = (p) => p >= 0.75 ? "r4" : p >= 0.55 ? "r3" : p >= 0.35 ? "r2" : p >= 0.15 ? "r1" : "r0";
+  const defClass = (s) => s >= 2 ? "d4" : s >= 1.25 ? "d3" : s >= 0.5 ? "d2" : s >= 0 ? "d1" : "d0";
+
+  // ---------- state ----------
+  const live = { fc: D.now, status: null, mode: D.now ? "snapshot" : "none", server: false, corr: null, corrKey: "" };
+  const defEv = Math.max(0, D.events.findIndex((e) => e.key === "ditwah2025"));
+  const state = { view: "today", target: 0, sel: null, ev: defEv, day: 0, mode: "fc", sub: "forecast",
+                  live: "reports", step: 0, lang: "en", truth: true, withReports: true, armReset: false, repMsg: "" };
+  let device = null;
+  try { device = localStorage.getItem("floodmind-device"); } catch {}
+  if (!device) { device = "dash-" + (crypto.randomUUID ? crypto.randomUUID() : Math.random().toString(36).slice(2)); try { localStorage.setItem("floodmind-device", device); } catch {} }
+  const ev = () => D.events[state.ev];
+  const day = () => ev().days[state.day];
+  function pickPeak() {
+    const ds = ev().days; let b = 0;
+    ds.forEach((d, i) => { if (d.n_flooded > ds[b].n_flooded) b = i; });
+    state.day = b; state.step = 0;
+    state.mode = ev().has_forecast ? "fc" : "obs";
+  }
+  pickPeak();
+
+  // ---------- projection: equirectangular scaled by cos(lat), fine at city scale ----------
+  let minX = 1e9, maxX = -1e9, minY = 1e9, maxY = -1e9;
+  const rings = (g) => g.type === "Polygon" ? g.coordinates : g.type === "MultiPolygon" ? g.coordinates.flat()
+    : g.type === "LineString" ? [g.coordinates] : g.type === "MultiLineString" ? g.coordinates : [];
+  wardsF.forEach((f) => rings(f.geometry).forEach((r) => r.forEach(([x, y]) => {
+    minX = Math.min(minX, x); maxX = Math.max(maxX, x); minY = Math.min(minY, y); maxY = Math.max(maxY, y);
+  })));
+  const kx = Math.cos(((minY + maxY) / 2) * Math.PI / 180);
+  const PAD = 26, W = 560, S = W / ((maxX - minX) * kx), H = Math.ceil((maxY - minY) * S) + PAD * 2;
+  const px = ([x, y]) => [(x - minX) * kx * S + PAD, (maxY - y) * S + PAD];
+  const path = (g, close) => rings(g).map((r) => "M" + r.map((c) => px(c).map((v) => v.toFixed(1)).join(",")).join("L") + (close ? "Z" : "")).join("");
+  const centroid = new Map();
+  wardsF.forEach((f) => {
+    const r = rings(f.geometry)[0]; let sx = 0, sy = 0;
+    r.forEach((c) => { const [a, b] = px(c); sx += a; sy += b; });
+    centroid.set(f.properties.ward_id, [sx / r.length, sy / r.length]);
+  });
+
+  const NS = "http://www.w3.org/2000/svg";
+  const el = (tag, attrs, parent) => { const e = document.createElementNS(NS, tag); for (const k in attrs) e.setAttribute(k, attrs[k]); parent && parent.appendChild(e); return e; };
+  const svg = $("map");
+  svg.setAttribute("viewBox", `0 0 ${W + PAD * 2} ${H}`);
+  const gW = el("g", {}, svg), gL = el("g", {}, svg), gR = el("g", {}, svg), gT = el("g", {}, svg), gO = el("g", {}, svg), gDeco = el("g", {}, svg);
+  const wardEls = new Map();
+  wardsF.forEach((f) => {
+    const w = f.properties.ward_id;
+    const p = el("path", { d: path(f.geometry, true), class: "ward r0" }, gW);
+    p.addEventListener("mousemove", (e) => showTip(w, e));
+    p.addEventListener("mouseleave", () => { $("tip").hidden = true; });
+    p.addEventListener("click", () => selectWard(w));
+    wardEls.set(w, p);
+  });
+  D.lakes.features.forEach((f) => el("path", { d: path(f.geometry, true), class: "lake" }, gL));
+  D.waterways.features.forEach((f) => el("path", { d: path(f.geometry, false), class: "river" }, gR));
+  // 2 km scale bar and north arrow: the map is drawn from our own data, so it carries its own.
+  const kmPerUnit = 111.32 / S;
+  const bar = 2 / kmPerUnit;
+  const sc = el("g", { class: "scale", transform: `translate(${PAD},${H - 14})` }, gDeco);
+  el("line", { x1: 0, y1: 0, x2: bar, y2: 0 }, sc); el("line", { x1: 0, y1: -4, x2: 0, y2: 0 }, sc); el("line", { x1: bar, y1: -4, x2: bar, y2: 0 }, sc);
+  el("text", { x: bar + 6, y: 3 }, sc).textContent = "2 km";
+  const no = el("g", { class: "north", transform: `translate(${W + PAD - 4},${PAD + 4})` }, gDeco);
+  el("path", { d: "M0,-10 L5,4 L0,1 L-5,4 Z" }, no);
+  el("text", { x: -3, y: 16 }, no).textContent = "N";
+
+  // ---------- metrics ----------
+  function auc(p, y) {
+    const idx = p.map((v, i) => i).sort((a, b) => p[a] - p[b]);
+    let rank = 1, nPos = 0, sumPos = 0;
+    for (let i = 0; i < idx.length;) {
+      let j = i; while (j < idx.length && p[idx[j]] === p[idx[i]]) j++;
+      const avg = (2 * rank + (j - i) - 1) / 2;
+      for (let k = i; k < j; k++) if (y[idx[k]]) { sumPos += avg; nPos++; }
+      rank += j - i; i = j;
+    }
+    const nNeg = y.length - nPos;
+    return nPos && nNeg ? (sumPos - nPos * (nPos + 1) / 2) / (nPos * nNeg) : NaN;
+  }
+  function avgPrec(p, y) {
+    const idx = p.map((v, i) => i).sort((a, b) => p[b] - p[a]);
+    const nPos = y.reduce((a, b) => a + b, 0); if (!nPos) return NaN;
+    let tp = 0, ap = 0; idx.forEach((i, k) => { if (y[i]) { tp++; ap += tp / (k + 1); } });
+    return ap / nPos;
+  }
+
+  // ---------- data accessors ----------
+  const todayT = () => live.fc?.targets?.[state.target];
+  const corrFor = (t) => live.corr && t && live.corr.window === t.date ? live.corr : null;
+  function forecastP() {
+    const t = todayT(); if (!t) return ids.map(() => 0);
+    const m = new Map(t.ward_id.map((w, i) => [w, t.p[i] / 100]));
+    return ids.map((w) => m.get(w) ?? 0);
+  }
+  function todayP() {
+    const c = corrFor(todayT());
+    if (state.withReports && c && c.reports.length) {
+      const m = new Map(c.ward_id.map((w, i) => [w, c.p_now[i] / 100]));
+      return ids.map((w) => m.get(w) ?? 0);
+    }
+    return forecastP();
+  }
+  function todayArr(key) {
+    const t = todayT(); if (!t || !t[key]) return ids.map(() => null);
+    const m = new Map(t.ward_id.map((w, i) => [w, t[key][i]]));
+    return ids.map((w) => m.get(w) ?? null);
+  }
+  const useFc = () => state.mode === "fc" && !!day().p_fc;
+  const replayBase = () => (useFc() ? day().p_fc : day().p_obs).map((v) => (v ?? 0) / 100);
+  const steps = () => day()[state.live === "reports" ? "replay_reports" : "replay_asks"] || [];
+  function replayP() {
+    if (state.sub === "live" && state.step > 0) {
+      const s = steps()[Math.min(state.step, steps().length) - 1];
+      if (s) return s.p.map((v) => v / 100);
+    }
+    return replayBase();
+  }
+  function currentP() { return state.view === "today" ? todayP() : replayP(); }
+
+  // ---------- map painting ----------
+  function paint() {
+    const v = state.view;
+    $("stage").hidden = v === "score";
+    if (v === "score") { $("map-title").textContent = ""; return; }
+    if (v === "drains") wardEls.forEach((p, w) => p.setAttribute("class", "ward " + defClass(D.deficit[w]?.score ?? -1)));
+    else { const P = currentP(); wardEls.forEach((p, w) => p.setAttribute("class", "ward " + riskClass(P[pos.get(w)]))); }
+    wardEls.forEach((p, w) => p.classList.toggle("sel", w === state.sel));
+    if (state.sel != null && wardEls.has(state.sel)) gW.appendChild(wardEls.get(state.sel));  // outline on top
+    gT.innerHTML = ""; gO.innerHTML = "";
+    $("truth-wrap").hidden = v !== "replay";
+    if (v === "replay" && state.truth) ids.forEach((w, i) => { if (day().y[i]) { const [x, y] = centroid.get(w); el("circle", { cx: x, cy: y, r: 2.3, class: "truth" }, gT); } });
+    const c = v === "today" ? corrFor(todayT()) : null;
+    if (c) {
+      if (state.withReports) c.reports.forEach((r) => { const [x, y] = centroid.get(r.ward_id); el("circle", { cx: x, cy: y, r: 7, class: r.flooded ? "obs-ring" : "obs-dry" }, gO); });
+      const nx = c.ask_next?.[0]; if (nx != null) { const [x, y] = centroid.get(nx); el("circle", { cx: x, cy: y, r: 10, class: "ask-next" }, gO); }
+    }
+    if (v === "replay" && state.sub === "live") {
+      steps().slice(0, state.step).forEach((s) => { const [x, y] = centroid.get(s.ward); el("circle", { cx: x, cy: y, r: 7, class: s.flooded ? "obs-ring" : "obs-dry" }, gO); });
+      const nx = nextAsk(); if (nx != null) { const [x, y] = centroid.get(nx); el("circle", { cx: x, cy: y, r: 10, class: "ask-next" }, gO); }
+    }
+    legend();
+    $("map-title").textContent = mapTitle();
+  }
+  function legend() {
+    const L = $("legend");
+    if (state.view === "drains") {
+      L.innerHTML = `<span class="eyebrow">Shortfall score</span>` + [["d1", "0–0.5"], ["d2", "0.5–1.25"], ["d3", "1.25–2"], ["d4", "2+"], ["d0", "below expected"]]
+        .map(([c, t]) => `<span class="sw"><i style="background:var(--${c})"></i>${t}</span>`).join("");
+      return;
+    }
+    L.innerHTML = `<span class="eyebrow">Flood chance</span>` + [["r0", "under 15%"], ["r1", "15–35%"], ["r2", "35–55%"], ["r3", "55–75%"], ["r4", "75%+"]]
+      .map(([c, t]) => `<span class="sw"><i style="background:var(--${c})"></i>${t}</span>`).join("") +
+      (state.view === "replay" && state.truth ? `<span class="sw"><svg width="10" height="10" aria-hidden="true"><circle cx="5" cy="5" r="3" class="truth"/></svg>flooding reported</span>` : "") +
+      ((state.view === "replay" && state.sub === "live" && state.live === "asks") || (state.view === "today" && corrFor(todayT())) ? `<span class="sw"><svg width="16" height="16" aria-hidden="true"><circle cx="8" cy="8" r="6" class="ask-next"/></svg>ask here next</span>` : "") +
+      (state.view === "today" && corrFor(todayT())?.reports.length && state.withReports ? `<span class="sw"><svg width="16" height="16" aria-hidden="true"><circle cx="8" cy="8" r="6" class="obs-ring"/></svg>flooded report</span><span class="sw"><svg width="16" height="16" aria-hidden="true"><circle cx="8" cy="8" r="6" class="obs-dry"/></svg>dry report</span>` : "");
+  }
+  const tip = $("tip");
+  function showTip(w, e) {
+    const i = pos.get(w), pr = props.get(w), box = svg.parentElement.getBoundingClientRect();
+    let body;
+    if (state.view === "drains") { const d = D.deficit[w]; body = `Rank ${d?.rank ?? "–"} of 200 · score ${d?.score ?? "–"}<br>${d ? (d.excess >= 0 ? "+" : "") + (d.excess * 100).toFixed(1) : "–"} flood days per 100 wet days vs expected`; }
+    else if (state.view === "today") { const r = todayArr("rain")[i]; body = `Flood chance ${pct(currentP()[i])}<br>Rain forecast ${r ?? "–"} mm`; }
+    else { body = `Flood chance ${pct(currentP()[i])}<br>Rain ${day().rain[i] ?? "–"} mm · ${day().y[i] ? "flooding reported" : "no report"}`; }
+    tip.innerHTML = `<b>${esc(label(w))}</b><br>${body}<br>${fmt.format(Math.round(pr.pop || 0))} people`;
+    tip.hidden = false;
+    const x = e.clientX - box.left + 14, y = e.clientY - box.top + 14;
+    tip.style.left = Math.min(x, box.width - 250) + "px"; tip.style.top = y + "px";
+  }
+  function selectWard(w) { state.sel = w; state.userSel = true; renderSide(); paint(); }
+
+  // ---------- status ----------
+  function renderStatus() {
+    const s = $("status"), t = $("status-text");
+    const issued = live.fc ? new Date(live.fc.issued_at) : null;
+    const when = issued ? issued.toLocaleString("en-IN", { day: "numeric", month: "short", hour: "2-digit", minute: "2-digit" }) : "";
+    let mode = live.mode, text;
+    if (live.status?.running) { mode = "running"; text = "Updating forecast…"; }
+    else if (mode === "live") text = `Live · issued ${when} · refreshes every ${live.status.refresh_hours} h`;
+    else if (mode === "stale") text = `Forecast issued ${when} · ${live.status.last_error ? "last update failed" : "update due"}`;
+    else if (mode === "offline") text = `Offline · showing forecast issued ${when}`;
+    else if (mode === "snapshot") text = `Snapshot · forecast issued ${when}`;
+    else text = "No live forecast yet";
+    s.dataset.mode = mode;
+    t.textContent = text;
+    if (live.server && !live.status?.running && !s.querySelector("button")) {
+      const b = document.createElement("button"); b.type = "button"; b.textContent = "Refresh"; b.onclick = runNow; s.appendChild(b);
+    }
+    if (live.status?.running) s.querySelector("button")?.remove();
+  }
+  async function poll() {
+    try {
+      const r = await fetch("api/latest", { cache: "no-store" });
+      if (!r.ok) throw new Error(r.status);
+      const j = await r.json();
+      live.server = true; live.status = j.status;
+      if (j.forecast) live.fc = j.forecast;
+      live.mode = (j.status.last_error || (j.status.age_minutes ?? 1e9) > j.status.refresh_hours * 120) ? "stale" : "live";
+    } catch { live.mode = live.server ? "offline" : (live.fc ? "snapshot" : "none"); }
+    renderStatus();
+    if (state.view === "today") { renderContext(); renderSide(); paint(); renderBelow(); }
+  }
+  async function runNow() {
+    try { await fetch("api/run", { method: "POST" }); } catch { /* status will show offline */ }
+    const t = setInterval(async () => { await poll(); if (!live.status?.running) clearInterval(t); }, 4000);
+    poll();
+  }
+
+  // ---------- context (top of each view) ----------
+  const ctx = $("context");
+  function renderContext() {
+    const v = state.view;
+    if (v === "today") {
+      if (!live.fc) { ctx.innerHTML = `<div class="headline"><h1>No live forecast yet</h1><p>Start the server with <span class="num">python -m floodmind.server</span>, or run <span class="num">python -m floodmind.live</span> once.</p></div>`; return; }
+      const T = live.fc.targets, t = todayT(), s = t.summary;
+      const P = todayP(), top = P.indexOf(Math.max(...P));
+      const nHigh = P.filter((p) => p >= 0.55).length, nElev = P.filter((p) => p >= 0.3 && p < 0.55).length;
+      const head = nHigh > 0 ? `High flood risk in <em>${nHigh} ward${nHigh > 1 ? "s" : ""}</em>`
+        : nElev > 0 ? `Flooding possible in <em>${nElev} ward${nElev > 1 ? "s" : ""}</em>`
+        : `Low flood risk <em>across Chennai</em>`;
+      const issued = new Date(live.fc.issued_at);
+      const firstLabel = issued.getHours() < 8 || (issued.getHours() === 8 && issued.getMinutes() < 30) ? "Until 08:30 today" : "Until 08:30 tomorrow";
+      ctx.innerHTML = `<div class="hero">
+        <div class="headline">
+          <span class="eyebrow">${esc(t.window)}</span>
+          <h1>${head}</h1>
+          <p>ECMWF forecasts ${t.rain_city_mm} mm of rain on average across the city (up to ${t.rain_max_mm} mm). The highest ward is ${esc(label(ids[top]))} at ${pct(P[top])}. ${nHigh + nElev === 0 ? "Every ward is below a 30% chance." : ""}${corrFor(t)?.reports.length ? ` <b>${corrFor(t).reports.length} citizen report${corrFor(t).reports.length > 1 ? "s" : ""}</b> ${state.withReports ? "are shaping this map." : "received (hidden)."}` : ""}</p>
+        </div>
+        <div class="targets" role="group" aria-label="Forecast window">
+          ${T.map((x, i) => `<button type="button" class="target" data-t="${i}" aria-pressed="${i === state.target}">
+            <span class="when">${i === 0 ? firstLabel : "The 24 hours after"}</span>
+            <span class="big">${Math.round(Math.max(...x.p))}%</span>
+            <span class="sub">highest ward · ${x.rain_city_mm} mm rain · ${x.summary.wards_high} wards at 55%+</span>
+          </button>`).join("")}
+        </div></div>`;
+      ctx.querySelectorAll(".target").forEach((b) => b.onclick = () => { state.target = +b.dataset.t; renderAll(); });
+      return;
+    }
+    if (v === "replay") {
+      const mx = Math.max(50, ...ev().days.map((d) => d.rain_city));
+      ctx.innerHTML = `
+        <div class="row" style="justify-content:space-between"><div class="headline"><span class="eyebrow">Replay a past flood · every chance shown is out-of-sample</span>
+          <h1 style="font-size:clamp(1.5rem,2.8vw,2.1rem)">${esc(ev().title)}</h1></div>
+          <div class="seg" role="group" aria-label="Rain input">
+            <button type="button" id="m-fc" ${day().p_fc ? "" : "disabled"} aria-pressed="${useFc()}">Forecast from the day before</button>
+            <button type="button" id="m-obs" aria-pressed="${!useFc()}">Observed rain</button></div></div>
+        <div class="chips" role="group" aria-label="Flood event">${D.events.map((e, i) => `<button type="button" class="chip" data-e="${i}" aria-pressed="${i === state.ev}">${esc(e.title)}</button>`).join("")}</div>
+        <div class="days" role="group" aria-label="Day">${ev().days.map((d, i) => `<button type="button" class="day" data-d="${i}" aria-pressed="${i === state.day}" title="${d.rain_city} mm city-mean rain (IMD day ending 08:30 IST); ${d.n_flooded} wards reported flooded">
+          <span class="d">${dateFmt(d.date, { day: "numeric", month: "short" })}</span><span class="bar"><i style="height:${Math.max(2, 34 * d.rain_city / mx)}px"></i></span><span class="mm">${Math.round(d.rain_city)} mm</span></button>`).join("")}</div>
+        ${day().p_fc ? "" : `<p class="note">Archived day-ahead forecasts start in 2024, so earlier floods are replayed with observed rain.</p>`}`;
+      ctx.querySelectorAll(".chip").forEach((b) => b.onclick = () => { state.ev = +b.dataset.e; pickPeak(); state.sel = null; renderAll(); });
+      ctx.querySelectorAll(".day").forEach((b) => b.onclick = () => { state.day = +b.dataset.d; state.step = 0; renderAll(); });
+      $("m-fc").onclick = () => { if (day().p_fc) { state.mode = "fc"; state.step = 0; renderAll(); } };
+      $("m-obs").onclick = () => { state.mode = "obs"; state.step = 0; renderAll(); };
+      return;
+    }
+    if (v === "drains") {
+      const s = D.deficit_summary;
+      ctx.innerHTML = `<div class="hero"><div class="headline"><span class="eyebrow">Drain check · 2015–2025</span>
+        <h1>Where Chennai floods <em>more than its ground explains</em></h1>
+        <p>For every ward we compare how often it flooded on wet days (20 mm or more) with what rain, terrain and land cover alone predict. Wards at the top point to blocked or undersized drains, missing links or outfall problems. It is a list for inspection, not a verdict.</p></div>
+        <div class="targets"><div class="target" style="cursor:default"><span class="when">Flooding less than the city trend since 2022</span><span class="big">${s.wards_improved}</span><span class="sub">wards, after the storm-drain programme</span></div>
+        <div class="target" style="cursor:default"><span class="when">Flooding more than the city trend</span><span class="big">${s.wards_worsened}</span><span class="sub">wards</span></div></div></div>`;
+      return;
+    }
+    ctx.innerHTML = `<div class="headline"><span class="eyebrow">Scorecard</span><h1>How well FloodMind <em>actually works</em></h1>
+      <p>Every number here is out-of-sample: each year from 2015 to 2025 was held out in turn and scored by a model that never saw it. Labels are ${fmt.format(D.metrics.loso.floodmind.n_pos)} ward-days of reported flooding.</p></div>`;
+  }
+
+  // ---------- side column ----------
+  const side = $("side");
+  function topList(P, k = 8) {
+    const order = ids.map((w, i) => i).sort((a, b) => P[b] - P[a]).slice(0, k);
+    return `<ul class="list">${order.map((i) => { const w = ids[i], p = P[i];
+      return `<li><button type="button" data-w="${w}" aria-current="${w === state.sel}"><span class="id">W${w}</span><span class="nm">${esc(nameOf(w) || "—")}</span><span class="pv">${pct(p)}</span>
+        <span class="meter"><i style="width:${Math.max(2, p * 100)}%;background:var(--${riskClass(p)})"></i></span></button></li>`; }).join("")}</ul>`;
+  }
+  function bindList() { side.querySelectorAll(".list button").forEach((b) => b.onclick = () => selectWard(+b.dataset.w)); }
+  function gauge(p) {
+    const r = 42, c = 2 * Math.PI * r;
+    return `<svg class="gauge" viewBox="0 0 104 104" role="img" aria-label="Flood chance ${pct(p)}">
+      <circle class="track" cx="52" cy="52" r="${r}" fill="none" stroke-width="10"/>
+      <circle class="val" cx="52" cy="52" r="${r}" fill="none" stroke-width="10" stroke-linecap="round" stroke-dasharray="${c}" stroke-dashoffset="${c * (1 - Math.max(0.01, p))}" transform="rotate(-90 52 52)"/>
+      <text x="52" y="58" text-anchor="middle" font-size="22">${pct(p)}</text></svg>`;
+  }
+  function advisories(list, cap) {
+    if (!list || !list.length) return `<div class="calm"><span class="dot"></span><span>No advisories. Every ward is below a 30% chance of flooding in this window.</span></div>`;
+    return `<div class="row" style="justify-content:space-between"><h3>Ward advisories</h3>
+      <div class="seg" role="group" aria-label="Language"><button type="button" data-lang="en" aria-pressed="${state.lang === "en"}">English</button><button type="button" data-lang="ta" aria-pressed="${state.lang === "ta"}">தமிழ்</button></div></div>
+      <div class="adv" style="display:grid;gap:8px">${list.slice(0, 4).map((a) => `<p lang="${state.lang}">${esc(a[state.lang])}</p>`).join("")}</div>
+      ${cap ? `<details><summary>CAP 1.2 alert for the top ward (the format India's SACHET platform ingests)</summary>
+        <div class="row" style="margin-top:8px"><button class="btn" type="button" id="copy-cap">Copy XML</button><span class="note" id="copy-msg"></span></div><pre id="cap"></pre></details>` : ""}
+      <p class="note">Demonstration advisories, marked as an exercise. Official warnings come from IMD and TN-Alert.</p>`;
+  }
+  function bindAdv(cap) {
+    side.querySelectorAll("[data-lang]").forEach((b) => b.onclick = () => { state.lang = b.dataset.lang; renderSide(); });
+    if (cap && $("cap")) {
+      $("cap").textContent = cap;
+      $("copy-cap").onclick = () => navigator.clipboard.writeText(cap).then(() => { $("copy-msg").textContent = "Copied"; },
+        () => { const r = document.createRange(); r.selectNodeContents($("cap")); const s = getSelection(); s.removeAllRanges(); s.addRange(r); $("copy-msg").textContent = "Selected; press Ctrl+C or Cmd+C"; });
+    }
+  }
+  function reportsCard(t) {
+    const c = corrFor(t);
+    if (!live.server) return `<section class="card panel"><h3>Citizen reports</h3><p class="note">Reports from phones need the FloodMind server running on the laptop: <span class="num">python -m floodmind.server --host 0.0.0.0</span>. The <b>Replay a flood</b> view shows how reports corrected past floods.</p></section>`;
+    if (!c) return `<section class="card panel"><h3>Citizen reports</h3><p class="note">Reports apply to the window in progress. The current forecast does not cover it yet; press Refresh.</p></section>`;
+    const url = live.status?.report_url;
+    const feed = c.reports.slice(-6).reverse().map((r) => `<li><span class="t">${new Date(r.time).toLocaleTimeString("en-GB", { hour: "2-digit", minute: "2-digit", hour12: false })}</span><span class="pill ${r.flooded ? "f" : "dry"}">${r.flooded ? "Flooded" : "Dry"}</span><span>${esc(label(r.ward_id))}${r.flooded && r.depth_cm ? ` · ${r.depth_cm >= 120 ? "above waist" : r.depth_cm >= 90 ? "waist-deep" : r.depth_cm >= 45 ? "knee-deep" : "ankle-deep"}` : ""}</span></li>`).join("");
+    return `<section class="card panel"><div class="row" style="justify-content:space-between"><h3>Citizen reports</h3>
+        <div class="seg" role="group" aria-label="Map shows"><button type="button" data-wr="1" aria-pressed="${state.withReports}">With reports</button><button type="button" data-wr="0" aria-pressed="${!state.withReports}">Forecast only</button></div></div>
+      <div class="qr"><img src="api/qr.svg" alt="QR code for the report page">
+        <div style="display:grid;gap:4px"><span class="eyebrow">Report from your phone</span>${url ? `<code>${esc(url)}</code><span class="note">Same Wi-Fi as this laptop. No name, number or location is stored.</span>` : `<span class="note">Start the server with <span class="num">--host 0.0.0.0</span> so phones on this Wi-Fi can open the report page.</span>`}</div></div>
+      <div class="counts"><span><b>${c.reports.length}</b> reports</span><span><b>${c.n_flooded}</b> flooded</span><span><b>${c.n_dry}</b> dry</span></div>
+      ${c.ask_next?.length ? `<div class="verdict">FloodMind would most like to hear from <b>${c.ask_next.slice(0, 3).map((w) => esc(label(w))).join("</b>, <b>")}</b>.</div>` : ""}
+      ${feed ? `<ol class="feed">${feed}</ol>` : `<p class="note">No reports yet for this window. Each report updates its ward and the wards within about ${c.length_km} km.</p>`}
+      ${live.corr.can_reset && c.reports.length ? `<div><button type="button" class="danger ${state.armReset ? "armed" : ""}" id="reset">${state.armReset ? "Click again to clear all reports for this window" : "Clear demo reports"}</button></div>` : ""}
+    </section>`;
+  }
+  function bindReports() {
+    side.querySelectorAll("[data-wr]").forEach((b) => b.onclick = () => { state.withReports = b.dataset.wr === "1"; renderAll(); });
+    side.querySelectorAll("[data-rep]").forEach((b) => b.onclick = () => sendReport(state.sel, b.dataset.rep === "1"));
+    const r = $("reset");
+    if (r) r.onclick = async () => {
+      if (!state.armReset) { state.armReset = true; renderSide(); setTimeout(() => { state.armReset = false; renderSide(); }, 5000); return; }
+      state.armReset = false;
+      try { await fetch("api/reports/reset", { method: "POST" }); } catch {}
+      live.corrKey = ""; pollCorr();
+    };
+  }
+  async function sendReport(w, flooded) {
+    try {
+      const r = await fetch("api/reports", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ ward_id: w, flooded, depth_cm: flooded ? 45 : 0, device }) });
+      const j = await r.json().catch(() => ({}));
+      state.repMsg = r.ok ? `Reported ${flooded ? "flooded (knee-deep)" : "dry"}: ${j.p_before}% → ${j.p_now}% here.` : (typeof j.detail === "string" ? j.detail : "Report not saved.");
+    } catch { state.repMsg = "Can't reach the FloodMind server."; }
+    live.corrKey = ""; await pollCorr();
+  }
+  async function pollCorr() {
+    if (!live.server) return;
+    try {
+      const r = await fetch("api/correction", { cache: "no-store" }); if (!r.ok) return;
+      const c = await r.json();
+      const key = `${c.window}|${c.forecast_target}|${c.reports.length}|${c.reports.at(-1)?.id ?? 0}|${c.ask_next.join(",")}`;
+      live.corr = c;
+      if (key !== live.corrKey) { live.corrKey = key; if (state.view === "today") { renderContext(); renderSide(); paint(); } }
+    } catch { /* poll() reports offline */ }
+  }
+  function wardCard(w, p, extra, actions = "") {
+    const pr = props.get(w), d = D.deficit[w], h = D.wardHist[w];
+    return `<section class="card panel"><span class="eyebrow">Selected ward</span>
+      <div class="wardcard">${gauge(p)}<div><div class="wardname">${esc(nameOf(w) || "Ward " + w)}</div><div class="note">GCC ward ${w} · ${pr.area_km2?.toFixed?.(1) ?? "–"} km²</div></div></div>
+      <div class="facts">
+        ${extra}
+        <div class="fact"><span class="v">${fmt.format(Math.round(pr.pop || 0))}</span><span class="k">people (WorldPop 2020)</span></div>
+        <div class="fact"><span class="v">${pr.n_hospitals ?? 0} · ${pr.n_schools ?? 0}</span><span class="k">hospitals · schools (OSM)</span></div>
+        <div class="fact"><span class="v">${h != null ? pct(h) : "–"}</span><span class="k">of past city flood days it flooded</span></div>
+        <div class="fact"><span class="v">${d ? d.rank : "–"} / 200</span><span class="k">drain check rank</span></div>
+      </div>${actions}</section>`;
+  }
+  function renderSide() {
+    const v = state.view;
+    if (v === "today") {
+      const t = todayT();
+      if (!t) { side.innerHTML = `<section class="card panel"><p class="note">The ward details appear once a forecast exists.</p></section>`; return; }
+      const P = todayP();
+      if (!state.userSel || state.sel == null || !pos.has(state.sel)) state.sel = ids[P.indexOf(Math.max(...P))];
+      const i = pos.get(state.sel), rain = todayArr("rain")[i], r7 = todayArr("rain_7d")[i], F = forecastP();
+      const c = corrFor(t), useCorr = !!(c && c.reports.length && state.withReports);
+      const changed = useCorr && Math.round(F[i] * 100) !== Math.round(P[i] * 100);
+      side.innerHTML = wardCard(state.sel, P[i], `<div class="fact"><span class="v">${rain ?? "–"} mm</span><span class="k">rain forecast this window</span></div>
+          <div class="fact"><span class="v">${changed ? `${pct(F[i])} → ${pct(P[i])}` : `${r7 ?? "–"} mm`}</span><span class="k">${changed ? "forecast → after reports" : "rain in the 7 days before"}</span></div>`,
+          live.server && c ? `<div class="repbtns"><button type="button" class="wet" data-rep="1">Report flooded here</button><button type="button" class="dry" data-rep="0">Report dry here</button></div>${state.repMsg ? `<p class="note">${esc(state.repMsg)}</p>` : ""}` : "") +
+        reportsCard(t) +
+        `<section class="card panel"><h3>Wards to watch</h3>${topList(P)}</section>
+         <section class="card panel">${advisories(useCorr ? c.advisories : t.advisories, useCorr ? c.cap : t.cap)}</section>`;
+      bindList(); bindAdv(useCorr ? c.cap : t.cap); bindReports(); return;
+    }
+    if (v === "replay") { renderReplaySide(); return; }
+    if (v === "drains") {
+      const rows = Object.entries(D.deficit).map(([w, x]) => ({ w: +w, ...x })).sort((a, b) => a.rank - b.rank).slice(0, 12);
+      const tr = (t) => t == null ? "" : t < -0.03 ? `<span class="trend-down">less often</span>` : t > 0.03 ? `<span class="trend-up">more often</span>` : `<span class="note">steady</span>`;
+      side.innerHTML = `<section class="card panel"><h3>Top 12 wards to inspect</h3><div class="tablebox"><table>
+        <thead><tr><th>#</th><th>Ward</th><th class="n">Extra floods</th><th>Since 2022</th></tr></thead>
+        <tbody>${rows.map((r) => `<tr><td class="num">${r.rank}</td><td><button type="button" class="linkish" data-w="${r.w}" style="border:0;background:none;padding:0;text-align:left;color:inherit">${esc(label(r.w))}</button></td><td class="n">+${(r.excess * 100).toFixed(1)}</td><td>${tr(r.trend)}</td></tr>`).join("")}</tbody></table></div>
+        <p class="note">Extra floods: flood days per 100 wet days beyond what the ground explains. Media-attention proxies explain only R² = ${D.deficit_summary.attention_r2.toFixed(2)} of it, so this is not just a list of well-reported areas.</p></section>`;
+      side.querySelectorAll(".linkish").forEach((b) => b.onclick = () => selectWard(+b.dataset.w));
+      return;
+    }
+    side.innerHTML = "";
+  }
+  function nextAsk() {
+    if (state.live !== "asks") return null;
+    const st = steps(); return state.step < st.length ? st[state.step].ward : (day().next_after_asks?.[0] ?? null);
+  }
+  function renderReplaySide() {
+    const d = day(), P0 = replayBase(), P = replayP();
+    const tabs = `<div class="seg" role="group" aria-label="Panel"><button type="button" data-sub="forecast" aria-pressed="${state.sub === "forecast"}">Forecast</button><button type="button" data-sub="live" aria-pressed="${state.sub === "live"}">Live correction</button></div>`;
+    let body;
+    if (state.sub === "forecast") {
+      const a = auc(P, d.y);
+      let n = 0, pop = 0; ids.forEach((w, i) => { if (P[i] >= 0.55) { n++; pop += props.get(w).pop || 0; } });
+      body = `<div class="tiles">
+          <div class="tile"><span class="v">${Math.round(useFc() ? d.rain_fc_city : d.rain_city)} mm</span><span class="k">${useFc() ? `rain forecast (actual ${Math.round(d.rain_city)} mm)` : "city-mean rain, IMD"}</span></div>
+          <div class="tile"><span class="v">${d.n_flooded}</span><span class="k">wards where flooding was reported</span></div>
+          <div class="tile"><span class="v">${n}</span><span class="k">wards FloodMind put at 55%+</span></div>
+          <div class="tile"><span class="v">${pop >= 1e6 ? (pop / 1e6).toFixed(2) + " M" : pop >= 1000 ? fmt.format(Math.round(pop / 1000)) + "k" : fmt.format(Math.round(pop))}</span><span class="k">people in those wards</span></div></div>
+        ${d.n_flooded && !isNaN(a) ? `<div class="verdict">FloodMind ranked a flooded ward above a dry one <b>${Math.round(a * 100)}%</b> of the time on this day (50% is chance).</div>` : ""}
+        <h3>Highest-risk wards</h3>${topList(P)}`;
+    } else {
+      const st = steps();
+      if (!st.length) body = `<p class="note">Too few wards reported flooding on this day to replay. Pick a busier day.</p>`;
+      else {
+        const n = Math.min(state.step, st.length), seen = new Set(st.slice(0, n).map((s) => s.ward));
+        const keep = ids.map((w, i) => i).filter((i) => !seen.has(ids[i])), y = keep.map((i) => d.y[i]);
+        const mean = (Q) => keep.reduce((a, i) => a + Q[i], 0) / keep.length;
+        const brier = (Q) => keep.reduce((a, i, k) => a + (Q[i] - y[k]) ** 2, 0) / keep.length;
+        const share = y.reduce((a, b) => a + b, 0) / y.length;
+        const nx = nextAsk();
+        body = `<div class="seg" role="group" aria-label="Source"><button type="button" data-live="reports" aria-pressed="${state.live === "reports"}">Citizen reports</button><button type="button" data-live="asks" aria-pressed="${state.live === "asks"}">FloodMind asks</button></div>
+          <label class="eyebrow" for="step">Observations received: ${n} of ${st.length}</label>
+          <input type="range" id="step" min="0" max="${st.length}" step="1" value="${n}">
+          <div class="tiles">
+            <div class="tile"><span class="v">${pct(mean(P0))} → ${pct(mean(P))}</span><span class="k">average chance on wards not yet heard from; ${pct(share)} of them flooded</span></div>
+            <div class="tile"><span class="v">${brier(P0).toFixed(3)} → ${brier(P).toFixed(3)}</span><span class="k">Brier score on those wards (lower is better)</span></div></div>
+          ${nx != null ? `<div class="verdict">Ask next: <b>${esc(label(nx))}</b>. Its answer would cut the most uncertainty for the most people.</div>` : ""}
+          <ol class="feed">${st.slice(0, n).map((s, k) => `<li><span class="n">${k + 1}</span>${state.live === "reports"
+            ? `<span class="pill f">Flooded</span><span>Report from ${esc(label(s.ward))}</span>` : `<span class="pill ${s.flooded ? "f" : "dry"}">${s.flooded ? "Flooded" : "Dry"}</span><span>Asked ${esc(label(s.ward))}</span>`}</li>`).join("") || `<li class="note">Drag the slider to let observations arrive. Each one updates its ward and the wards within about ${D.liveEval.length_km} km.</li>`}</ol>`;
+      }
+    }
+    side.innerHTML = `<section class="card panel">${tabs}${body}</section>` + (state.sub === "forecast" ? `<section class="card panel">${advisories(d.advisories, d.cap)}</section>` : "");
+    side.querySelectorAll("[data-sub]").forEach((b) => b.onclick = () => { state.sub = b.dataset.sub; state.step = 0; renderAll(); });
+    side.querySelectorAll("[data-live]").forEach((b) => b.onclick = () => { state.live = b.dataset.live; state.step = Math.min(state.step, steps().length); renderSide(); paint(); });
+    const r = $("step"); if (r) r.oninput = (e) => { state.step = +e.target.value; renderSide(); paint(); $("step")?.focus(); };
+    bindList(); if (state.sub === "forecast") bindAdv(d.cap);
+  }
+
+  // ---------- below the stage ----------
+  const below = $("below");
+  function renderBelow() {
+    if (state.view === "today" && live.fc?.recent_rain) {
+      const R = live.fc.recent_rain, n = R.length, w = 1240, h = 170, pl = 34, pb = 24, pt = 18;
+      const mx = Math.max(10, ...R.map((r) => r.mm)) * 1.15, bw = (w - pl) / n;
+      const y = (v) => h - pb - (v / mx) * (h - pb - pt);
+      const ticks = [0, mx / 2, mx].map((v) => `<line class="grid" x1="${pl}" x2="${w}" y1="${y(v)}" y2="${y(v)}"/><text x="${pl - 6}" y="${y(v) + 3}" text-anchor="end">${Math.round(v)}</text>`).join("");
+      const bars = R.map((r, i) => { const x = pl + i * bw + bw * 0.18, bh = Math.max(1.5, y(0) - y(r.mm));
+        const cls = r.source === "forecast" ? "fc" : r.source === "ecmwf" ? "est" : "past";
+        return `<rect class="${cls}" x="${x.toFixed(1)}" y="${(y(0) - bh).toFixed(1)}" width="${(bw * 0.64).toFixed(1)}" height="${bh.toFixed(1)}" rx="3"/>` +
+          (r.mm >= 0.5 ? `<text class="val" x="${(x + bw * 0.32).toFixed(1)}" y="${(y(0) - bh - 4).toFixed(1)}" text-anchor="middle">${r.mm}</text>` : "") +
+          (i % 2 === n % 2 || r.source === "forecast" ? `<text x="${(x + bw * 0.32).toFixed(1)}" y="${h - 8}" text-anchor="middle">${dateFmt(r.date, { day: "numeric", month: "short" })}</text>` : ""); }).join("");
+      const est = R.filter((r) => r.source === "ecmwf").length;
+      below.innerHTML = `<section class="card rain"><div class="row" style="justify-content:space-between"><h3 style="margin:0;font-family:var(--font-display);font-weight:650">Rain over Chennai, last two weeks and the days ahead</h3>
+        <div class="legend" style="padding:0"><span class="sw"><i style="background:var(--sea)"></i>observed (IMD)</span>${est ? `<span class="sw"><i style="background:var(--sea);opacity:.45"></i>estimated (ECMWF, IMD not yet published)</span>` : ""}<span class="sw"><i style="background:var(--coral)"></i>forecast</span></div></div>
+        <div class="tablebox"><svg viewBox="0 0 ${w} ${h}" role="img" aria-label="Daily city-mean rain in millimetres">${ticks}${bars}<text x="${pl - 6}" y="10" text-anchor="end">mm</text></svg></div>
+        <p class="note">Days run 08:30 to 08:30 IST, the IMD convention. The model also uses the 30 and 60 days before each forecast.</p></section>`;
+      return;
+    }
+    if (state.view === "score") { below.innerHTML = scorecard(); return; }
+    below.innerHTML = "";
+  }
+  function scorecard() {
+    const m = D.metrics, L = m.loso, E = m.event_days, F = m.forecast_mode_2024_25, R = D.liveReplay, LE = D.liveEval;
+    const row = (n, r, us) => `<tr class="${us ? "us" : ""}"><td>${n}</td><td class="n">${r.pr_auc.toFixed(3)}</td><td class="n">${r.roc_auc.toFixed(3)}</td><td class="n">${r.brier.toFixed(4)}</td></tr>`;
+    const head = `<thead><tr><th>Model</th><th class="n">PR-AUC</th><th class="n">ROC AUC</th><th class="n">Brier</th></tr></thead>`;
+    const ks = Object.keys(LE.by_k);
+    const ser = [["passive", "Citizen reports", "var(--coral)"], ["active", "FloodMind asks", "var(--sea)"], ["random", "Random asks", "var(--line)"]];
+    const gains = ks.map((k) => ser.map(([s]) => LE.by_k[k][s].pr_auc_after - LE.by_k[k][s].pr_auc_before));
+    const gmax = Math.max(0.05, ...gains.flat()), cw = 380, ch = 170, pl = 40, pb = 24, bw = 16, gw = (cw - pl) / ks.length;
+    const yS = (v) => ch - pb - (v / gmax) * (ch - pb - 12);
+    const chart = `<svg class="chart" viewBox="0 0 ${cw} ${ch}" role="img" aria-label="PR-AUC gain by number of observations">` +
+      [0, gmax / 2, gmax].map((v) => `<line class="grid" x1="${pl}" x2="${cw}" y1="${yS(v)}" y2="${yS(v)}"/><text x="${pl - 5}" y="${yS(v) + 3}" text-anchor="end">+${v.toFixed(2)}</text>`).join("") +
+      ks.map((k, i) => ser.map(([s, , c], j) => { const v = Math.max(gains[i][j], 0), x = pl + i * gw + gw / 2 - bw * 1.5 + j * bw;
+        return `<rect x="${x}" y="${yS(v)}" width="${bw - 3}" height="${Math.max(1, yS(0) - yS(v))}" rx="3" fill="${c}"/>`; }).join("") +
+        `<text x="${pl + i * gw + gw / 2}" y="${ch - 6}" text-anchor="middle">${k} obs</text>`).join("") + `</svg>`;
+    return `<div class="score">
+      <section class="card panel"><h3>Next-day forecast, all days and wards</h3><div class="tablebox"><table>${head}<tbody>
+        ${row("FloodMind (average of the next two)", L.floodmind, true)}${row("LightGBM, all features", L.lgb)}${row("Rain + ward history (logistic)", L.rain_history)}${row("Rain only", L.rain_only)}${row("Terrain only", L.terrain_only)}</tbody></table></div>
+        <p class="note">Base rate ${(L.floodmind.base_rate * 100).toFixed(1)}% of ward-days. PR-AUC is the honest headline for rare events; "never flood" would be 97% accurate.</p></section>
+      <section class="card panel"><h3>On flood days: which wards?</h3><div class="tablebox"><table>${head}<tbody>
+        ${row("FloodMind", E.floodmind, true)}${row("LightGBM alone", E.lgb)}${row("Rain + ward history", E.rain_history)}${row("Rain only", E.rain_only)}${row("Terrain only", E.terrain_only)}</tbody></table></div></section>
+      <section class="card panel"><h3>The live engine, replayed on 2024–25</h3><div class="tablebox"><table>
+        <thead><tr><th>Recent-rain source</th><th class="n">PR-AUC</th><th class="n">ROC AUC</th></tr></thead><tbody>
+        <tr><td>Hindsight: observed rain on the day</td><td class="n">${F.observed_rain.pr_auc.toFixed(3)}</td><td class="n">${F.observed_rain.roc_auc.toFixed(3)}</td></tr>
+        ${R ? `<tr class="us"><td>IMD real-time (what runs daily)</td><td class="n">${R.imd_rt ? R.imd_rt.pr_auc.toFixed(3) : "–"}</td><td class="n">${R.imd_rt ? R.imd_rt.roc_auc.toFixed(3) : "–"}</td></tr>
+        <tr><td>IMD final (as in training)</td><td class="n">${R.imd_final.pr_auc.toFixed(3)}</td><td class="n">${R.imd_final.roc_auc.toFixed(3)}</td></tr>
+        <tr><td>ECMWF only (fallback)</td><td class="n">${R.ecmwf.pr_auc.toFixed(3)}</td><td class="n">${R.ecmwf.roc_auc.toFixed(3)}</td></tr>` : ""}
+        </tbody></table></div><p class="note">All rows except hindsight use the ECMWF rain forecast issued 24 h earlier, with a model trained on 2015–2023 only.</p></section>
+      <section class="card panel"><h3>Live correction: gain on wards not yet heard from</h3>${chart}
+        <div class="legend" style="padding:0">${ser.map(([, n, c]) => `<span class="sw"><i style="background:${c}"></i>${n}</span>`).join("")}</div>
+        <p class="note">${LE.n_test_days} held-out flood days, 2021–2025. Correlation length ${LE.length_km} km, tuned on 2015–2020 only.${LE.forecast_prior ? ` From the 24 h forecast, 10 reports raise PR-AUC ${LE.forecast_prior.by_k["10"].passive.pr_auc_before.toFixed(2)} → ${LE.forecast_prior.by_k["10"].passive.pr_auc_after.toFixed(2)}.` : ""}</p></section>
+      <section class="card panel" style="grid-column:1/-1"><h3>Known limits</h3><ul class="limits">
+        <li>Labels come from news (Groundsource plus curated reports). A flood nobody reported counts as dry, so quieter wards look safer than they are.</li>
+        <li>IMD rainfall is a 0.25° grid (about 27 km), so neighbouring wards share rain values and local cloudbursts are smoothed.</li>
+        <li>Forecasts are per ward per day, not street-level depth. Terrain explains little of where reports cluster; history and live reports do more.</li>
+        <li>Live-correction gains are measured by replaying past reports. Real reports will be noisier.</li></ul></section></div>`;
+  }
+
+  // ---------- render ----------
+  function mapTitle() {
+    if (state.view === "today") return todayT() ? `Flood chance by ward · ${todayT().window}` : "Ward map";
+    if (state.view === "replay") return `${dateFmt(day().date, { weekday: "short", day: "numeric", month: "long", year: "numeric" })} · ${useFc() ? "forecast from the day before" : "observed rain"}${state.sub === "live" && state.step ? ` · after ${state.step} observation${state.step > 1 ? "s" : ""}` : ""}`;
+    if (state.view === "drains") return "Drainage shortfall by ward, 2015–2025";
+    return "";
+  }
+  function renderAll() {
+    document.querySelectorAll(".views button").forEach((b) => b.setAttribute("aria-current", b.dataset.view === state.view ? "page" : "false"));
+    renderContext(); renderSide(); paint(); renderBelow();
+  }
+  document.querySelectorAll(".views button").forEach((b) => b.onclick = () => {
+    state.view = b.dataset.view; state.sel = null; state.userSel = false; renderAll();
+    try { localStorage.setItem("floodmind-view", state.view); } catch {}
+  });
+  $("truth").onchange = (e) => { state.truth = e.target.checked; paint(); };
+  document.addEventListener("keydown", (e) => {
+    if (state.view !== "replay" || e.target.matches("input, button")) return;
+    if (e.key === "ArrowRight" && state.day < ev().days.length - 1) { state.day++; state.step = 0; renderAll(); }
+    if (e.key === "ArrowLeft" && state.day > 0) { state.day--; state.step = 0; renderAll(); }
+  });
+  try { const v = localStorage.getItem("floodmind-view"); if (v && ["today", "replay", "drains", "score"].includes(v)) state.view = v; } catch {}
+  if (!live.fc && state.view === "today") state.view = "replay";
+  // ---------- theme: light, dark, or follow the device ----------
+  function setTheme(t, save = true) {
+    if (t === "system") delete document.documentElement.dataset.theme; else document.documentElement.dataset.theme = t;
+    if (save) { try { t === "system" ? localStorage.removeItem("floodmind-theme") : localStorage.setItem("floodmind-theme", t); } catch {} }
+    document.querySelectorAll("[data-theme-set]").forEach((b) => b.setAttribute("aria-pressed", b.dataset.themeSet === t));
+  }
+  document.querySelectorAll("[data-theme-set]").forEach((b) => b.onclick = () => setTheme(b.dataset.themeSet));
+  setTheme(document.documentElement.dataset.theme || "system", false);
+
+  renderStatus(); renderAll();
+  poll().then(pollCorr); setInterval(poll, 60000); setInterval(pollCorr, 4000);
+})();
+</script>

@@ -1,0 +1,9 @@
+.venv/
+data/raw/
+data/interim/
+__pycache__/
+*.pyc
+.DS_Store
+data/raw/osm/cache/
+cache/
+floodmind.egg-info/
